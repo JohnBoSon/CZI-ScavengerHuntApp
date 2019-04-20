@@ -11,12 +11,52 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activities.Beta.UploadGallery"></activity>
+        <activity
+            android:name=".Activities.Qview"
+            android:label="@string/title_activity_qview"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".Activities.SHview"
+            android:label="@string/title_activity_shview"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.SHenter"
+            android:label="@string/title_activity_shenter"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.SHmake"
+            android:label="@string/title_activity_shmake"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.SHedit"
+            android:label="@string/title_activity_shedit"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.Qdash"
+            android:label="@string/title_activity_qdash"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.SHdash"
+            android:label="@string/title_activity_shdash"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.BNaviTest"
+            android:label="@string/title_activity_bnavi_test"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".Activities.TeacherView.TeacherQuestionActivity" />
+        <activity android:name=".Activities.StudentView.StudentQuestionActivity" />
+        <activity android:name=".Activities.TeacherView.EditSHActivity" />
+        <activity android:name=".Activities.TeacherView.CreateSHActivity" />
+        <activity android:name=".Activities.EnterSHActivity" />
+        <activity android:name=".Activities.StudentView.StudentSHActivity" />
+        <activity android:name=".Activities.TeacherView.TeacherSHActivity" />
+        <activity android:name=".Activities.Beta.Swipe" />
+        <activity android:name=".Activities.Beta.UploadGallery" />
         <activity android:name=".Activities.Beta.failDemoUpload" />
-        <activity android:name=".Activities.ViewQuestionActivity" />
+        <activity android:name=".Activities.ViewQuestionsActivity" />
         <activity
             android:name=".Activities.Home"
-            android:label="@string/title_activity_home"
+            android:label="home"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".Activities.HomeActivity" />
         <activity android:name=".Activities.LoginActivity">

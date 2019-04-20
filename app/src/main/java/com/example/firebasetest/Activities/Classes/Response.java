@@ -6,6 +6,8 @@ public class Response {
     String replierId;
     boolean isImage;
     String questionId;
+    boolean graded;
+    boolean pass;
 
     public Response(String reply, String id, String replierId, boolean isImage, String questionId) {
         this.reply = reply;

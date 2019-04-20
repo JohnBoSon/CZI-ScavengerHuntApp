@@ -41,6 +41,13 @@ dependencies {
     implementation 'com.android.support:support-v4:27.1.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
 
+    //swipe cards
+    implementation 'com.lorentzos.swipecards:library:1.0.9'
+    implementation 'com.android.support:cardview-v7:27.0.1'
+
+    //butter knife
+    implementation 'com.jakewharton:butterknife:8.5.1'
+
     //picasso
     implementation 'com.squareup.picasso:picasso:2.5.2'
 

@@ -13,7 +13,7 @@ import com.example.firebasetest.R;
 
 import java.util.ArrayList;
 
-public class ViewQuestionActivity extends AppCompatActivity {
+public class ViewQuestionsActivity extends AppCompatActivity {
 
     ListView listView;
 
@@ -21,7 +21,7 @@ public class ViewQuestionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_question);
+        setContentView(R.layout.activity_view_questions);
 
 
         listView = (ListView) findViewById(R.id.question_list);
@@ -42,7 +42,7 @@ public class ViewQuestionActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i , long l){
-                Toast.makeText(ViewQuestionActivity.this,"Clicked item:" + i + " " + arrayList.get(i).getTitle(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ViewQuestionsActivity.this,"Clicked old_item:" + i + " " + arrayList.get(i).getTitle(), Toast.LENGTH_SHORT).show();
             }
 
         });

@@ -9,13 +9,13 @@
             android:icon="@drawable/ic_home_black_24dp"
             android:title="Home" />
         <item
-            android:id="@+id/nav_profile"
-            android:icon="@drawable/ic_person_black_24dp"
-            android:title="Profile" />
-        <item
-            android:id="@+id/nav_settings"
+            android:id="@+id/nav_manage_sh"
             android:icon="@drawable/ic_settings_black_24dp"
-            android:title="Settings" />
+            android:title="Manage Scavenger Hunt" />
+        <item
+            android:id="@+id/nav_new_sh"
+            android:icon="@drawable/ic_art_track_black_24dp"
+            android:title="Start New Scavenger Hunt" />
         <item
             android:id="@+id/nav_signout"
             android:icon="@drawable/ic_exit_to_app_black_24dp"

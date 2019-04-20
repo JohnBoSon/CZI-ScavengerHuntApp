@@ -11,10 +11,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Beta.Swipe;
 import com.example.firebasetest.Activities.Beta.UploadGallery;
-import com.example.firebasetest.Activities.Beta.failDemoUpload;
 import com.example.firebasetest.Fragments.HomeFragment;
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,6 +29,8 @@ public class Home extends AppCompatActivity
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
 
+    Button demoButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +40,9 @@ public class Home extends AppCompatActivity
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+
+        demoButton = findViewById(R.id.button);
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -49,7 +56,19 @@ public class Home extends AppCompatActivity
 
         updateNavHeader();
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.container,new HomeFragment()).commit();
+        demoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Toast.makeText(getApplicationContext(), "demo button works", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
+        //setContentView(R.layout.activity_home);
+
+        //getSupportFragmentManager().beginTransaction().replace(R.id.container,new HomeFragment()).commit();
 
     }
 
@@ -72,7 +91,7 @@ public class Home extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
+        // Handle action bar old_item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
@@ -88,31 +107,48 @@ public class Home extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
+        // Handle navigation view old_item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
             //getSupportActionBar().setTitle("Home");
             //getSupportFragmentManager().beginTransaction().replace(R.id.container,new HomeFragment()).commit();
 
-            Intent viewUpload = new Intent(getApplicationContext(), UploadGallery.class);
-            startActivity(viewUpload);
+            //Intent viewUpload = new Intent(getApplicationContext(), UploadGallery.class);
+            //startActivity(viewUpload);
 
-        } else if (id == R.id.nav_profile) {
+
             //getSupportActionBar().setTitle("Profile");
             //getSupportFragmentManager().beginTransaction().replace(R.id.container,new ProfileFragment()).commit();
 
-            Intent manageSH = new Intent(getApplicationContext(),ManageSHActivity.class);
-            startActivity(manageSH);
+            //Intent manageSH = new Intent(getApplicationContext(),ManageSHActivity.class);
+            //startActivity(manageSH);
 
-        } else if (id == R.id.nav_settings) {
+            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
+            startActivity(Swipe);
+
+        } else if (id == R.id.nav_manage_sh) {
             //getSupportActionBar().setTitle("Settings");
             //getSupportFragmentManager().beginTransaction().replace(R.id.container,new SettingsFragment()).commit();
 
-            Intent viewQuestion = new Intent(getApplicationContext(),ViewQuestionActivity.class);
-            startActivity(viewQuestion);
+            //Intent manageSHActivity = new Intent(getApplicationContext(),SHdash.class);
+            //startActivity(manageSHActivity);
 
-        } else if (id == R.id.nav_signout) {
+            this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+
+
+        }else if (id == R.id.nav_new_sh) {
+            //getSupportActionBar().setTitle("Settings");
+            //getSupportFragmentManager().beginTransaction().replace(R.id.container,new SettingsFragment()).commit();
+
+            //Intent BNaviTest = new Intent(getApplicationContext(),BNaviTest.class);
+            //startActivity(BNaviTest);
+
+            //transition activity without animation
+            this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+
+
+        }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
             Intent loginActivity = new Intent(getApplicationContext(),LoginActivity.class);
