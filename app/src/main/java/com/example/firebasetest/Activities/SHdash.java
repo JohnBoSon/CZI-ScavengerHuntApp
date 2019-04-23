@@ -13,12 +13,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Beta.Swipe;
+import com.example.firebasetest.Activities.Classes.SH;
+import com.example.firebasetest.Adapters.SHAdapter;
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import java.util.ArrayList;
 
 public class SHdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -28,11 +36,11 @@ public class SHdash extends AppCompatActivity
 
     private Button addBtn;
 
+    ListView mListView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         setContentView(R.layout.activity_shdash);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -41,6 +49,28 @@ public class SHdash extends AppCompatActivity
         currentUser = mAuth.getCurrentUser();
 
         addBtn = findViewById(R.id.addBtn);
+
+
+        mListView = findViewById(R.id.listView);
+
+
+        //test
+        //    public SH(String id, String ownerId, String title, String description, String date)
+        SH testingScav1 = new SH("THIS", "TEST ", "TITLE IS WORKING", "SCAVENGER", "2029-05-15");
+
+        SH testingScav2 = new SH("THIS", "TEST ", "TITLE IS amazing WORKING", "SCAVENGER", "2008-05-15");
+
+        final ArrayList<SH> shList = new ArrayList<>();
+        shList.add(testingScav1);
+        shList.add(testingScav2);
+        shList.add(testingScav1);
+        shList.add(testingScav2);
+        shList.add(testingScav1);
+
+
+
+        SHAdapter adapter = new SHAdapter(this, R.layout.sh_adapter_view_layout, shList);
+        mListView.setAdapter(adapter);
 
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -64,6 +94,17 @@ public class SHdash extends AppCompatActivity
             }
         });
 
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
+
+                //shList.get(i).getTitle();
+                Toast.makeText(SHdash.this, "Clicked "+ shList.get(index).getTitle(), Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
     }
 
     @Override
@@ -85,16 +126,8 @@ public class SHdash extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar old_item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        /*if (id == R.id.action_settings) {
-            return true;
-        }
-        */
         return super.onOptionsItemSelected(item);
     }
 
@@ -144,9 +177,6 @@ public class SHdash extends AppCompatActivity
 
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
-
-
-
 
     }
 }

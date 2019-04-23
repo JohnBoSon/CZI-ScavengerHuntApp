@@ -10,8 +10,11 @@ package com.example.firebasetest.Activities;
         import android.widget.EditText;
         import android.widget.ProgressBar;
         import android.widget.Toast;
+        import android.widget.ToggleButton;
 
+        import com.example.firebasetest.Activities.Classes.SH;
         import com.google.android.gms.tasks.OnCompleteListener;
+        import com.google.android.gms.tasks.OnSuccessListener;
         import com.google.android.gms.tasks.Task;
         import com.google.firebase.auth.AuthResult;
         import com.google.firebase.auth.FirebaseAuth;
@@ -20,6 +23,8 @@ package com.example.firebasetest.Activities;
 
 
         import com.example.firebasetest.R;
+        import com.google.firebase.database.DatabaseReference;
+        import com.google.firebase.database.FirebaseDatabase;
 
 
 public class RegisterActivity extends AppCompatActivity {
@@ -29,6 +34,15 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressBar loadingProgress;
     private Button regBtn;
     private FirebaseAuth mAuth;
+
+    private ToggleButton teacherTB;
+    private ToggleButton studentTB;
+
+    private String accType = "EMPTY";
+    private FirebaseUser currentUser;
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
+    private String ownerId;
 
 
     @Override
@@ -45,8 +59,10 @@ public class RegisterActivity extends AppCompatActivity {
         regBtn = findViewById(R.id.regBtn);
         loadingProgress.setVisibility(View.INVISIBLE);
 
-
         mAuth = FirebaseAuth.getInstance();
+
+
+
 
 
         regBtn.setOnClickListener(new View.OnClickListener() {
@@ -60,9 +76,7 @@ public class RegisterActivity extends AppCompatActivity {
                 final String password2 = userPAssword2.getText().toString();
                 final String name = userName.getText().toString();
 
-                if( email.isEmpty() || name.isEmpty() || password.isEmpty()  || !password.equals(password2)) {
-
-
+                if( email.isEmpty() || name.isEmpty() || password.isEmpty()  || !password.equals(password2) || accType.equals("EMPTY")) {
                     // something goes wrong : all fields must be filled
                     // we need to display an error message
                     showMessage("Please Verify all fields") ;
@@ -72,10 +86,31 @@ public class RegisterActivity extends AppCompatActivity {
                 else {
                     // everything is ok and all fields are filled now we can start creating user account
                     // CreateUserAccount method will try to create the user if the email is valid
-
                     CreateUserAccount(email,name,password);
+
                 }
 
+            }
+        });
+
+        teacherTB = findViewById(R.id.teacherTB);
+        studentTB = findViewById(R.id.studentTB);
+
+        teacherTB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                studentTB.setTextOff("Student");
+                studentTB.setChecked(false);
+                accType = "HOST";
+            }
+        });
+
+        studentTB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                teacherTB.setTextOff("Teacher");
+                teacherTB.setChecked(false);
+                accType = "GUEST";
             }
         });
 
@@ -116,6 +151,13 @@ public class RegisterActivity extends AppCompatActivity {
 
 
     private void updateUI() {
+
+        //Write user type onto database before going to next activity
+        currentUser = mAuth.getCurrentUser();
+        ownerId = currentUser.getUid();
+        database = FirebaseDatabase.getInstance();
+        database.getReference("User").child(ownerId).setValue(accType);
+
         Intent homeActivity = new Intent(getApplicationContext(),Home.class);
         startActivity(homeActivity);
         finish();

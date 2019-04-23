@@ -1,6 +1,4 @@
 package com.example.firebasetest.Adapters;
-
-
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
@@ -13,8 +11,6 @@ import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.R;
 
 import java.util.ArrayList;
-import java.util.List;
-
 
 public class SHAdapter extends ArrayAdapter<SH> {
 
@@ -24,22 +20,13 @@ public class SHAdapter extends ArrayAdapter<SH> {
     private int mResource;
     private int lastPosition = -1;
 
-    /**
-     * Holds variables in a View
-     */
     private static class ViewHolder {
-        TextView name;
-        TextView birthday;
-        TextView sex;
+        TextView shTitle;
+        TextView participants;
+        TextView ongoingStatus;
     }
 
-    /**
-     * Default constructor for the PersonListAdapter
-     * @param context
-     * @param resource
-     * @param objects
-     */
-    public scavHuntAdapter(Context context, int resource, ArrayList<SH> objects) {
+    public SHAdapter(Context context, int resource, ArrayList<SH> objects) {
         super(context, resource, objects);
         mContext = context;
         mResource = resource;
@@ -49,12 +36,24 @@ public class SHAdapter extends ArrayAdapter<SH> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         //get the persons information
-        String name = getItem(position).getTitle();
-        String birthday = "hi";
-        String sex = "test2";
+        String shTitle = getItem(position).getTitle();
 
-        //Create the person object with the information
-        SH person = new SH("chris", "beau", name , "jimmy");
+        String onGoingStatus;
+
+
+        if(getItem(position).checkOngoing()){
+            onGoingStatus = "OnGoing";
+        }else{
+            onGoingStatus = "Ended";
+        }
+
+
+        String numPeople =  getItem(position).particitants.size() + " Participants";
+
+
+                //public SH(String id, String ownerId, String title, String description, String date)
+
+        SH shCell = new SH("n/a", "n/a", shTitle , "n/a", onGoingStatus);
 
         //create the view result for showing the animation
         final View result;
@@ -67,9 +66,9 @@ public class SHAdapter extends ArrayAdapter<SH> {
             LayoutInflater inflater = LayoutInflater.from(mContext);
             convertView = inflater.inflate(mResource, parent, false);
             holder= new ViewHolder();
-            holder.name = (TextView) convertView.findViewById(R.id.textView1);
-            holder.birthday = (TextView) convertView.findViewById(R.id.textView2);
-            holder.sex = (TextView) convertView.findViewById(R.id.textView3);
+            holder.shTitle = (TextView) convertView.findViewById(R.id.textView1);
+            holder.participants = (TextView) convertView.findViewById(R.id.textView2);
+            holder.ongoingStatus = (TextView) convertView.findViewById(R.id.textView3);
 
             result = convertView;
 
@@ -77,15 +76,23 @@ public class SHAdapter extends ArrayAdapter<SH> {
         }
         else{
             holder = (ViewHolder) convertView.getTag();
-            result = convertView;
+            //result = convertView;
         }
 
+        //Animation animation = AnimationUtils.loadAnimation(mContext,
+          //      (position > lastPosition) ? R.anim.load_down_anim : R.anim.load_up_anim);
+        //result.startAnimation(animation);
 
-        holder.name.setText(person.getTitle());
-        holder.birthday.setText(person.getId());
-        holder.sex.setText(person.getOwnerId());
+        lastPosition = position;
+
+        holder.shTitle.setText(shCell.getTitle());
+        holder.participants.setText(onGoingStatus);
+        holder.ongoingStatus.setText(numPeople);
 
 
         return convertView;
     }
+
+
+
 }

@@ -57,7 +57,7 @@
         app:layout_constraintTop_toTopOf="@+id/guideline4" />
 
     <Button
-        android:id="@+id/backBtn"
+        android:id="@+id/resultsBtn"
         android:layout_width="136dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -66,7 +66,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:background="@drawable/reg_btn_style"
-        android:text="back"
+        android:text="Results"
         android:textColor="#fff"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/guideline5"
@@ -86,7 +86,7 @@
         android:ems="10"
         android:gravity="center"
         android:hint="Current Title"
-        android:inputType="textPassword"
+        android:inputType="text"
         app:layout_constraintBottom_toTopOf="@+id/descET"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -104,7 +104,7 @@
         android:ems="10"
         android:gravity="center"
         android:hint="Current Description"
-        android:inputType="textPassword"
+        android:inputType="text"
         app:layout_constraintBottom_toTopOf="@+id/guideline4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -127,6 +127,21 @@
         android:layout_marginRight="8dp"
         android:layout_marginBottom="8dp"
         android:text="Edit"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toTopOf="@+id/dateTV"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/dateTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Current Date"
         android:textSize="30sp"
         app:layout_constraintBottom_toTopOf="@+id/titleET"
         app:layout_constraintEnd_toEndOf="parent"

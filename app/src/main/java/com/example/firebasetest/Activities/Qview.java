@@ -13,7 +13,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,6 +27,8 @@ public class Qview extends AppCompatActivity
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
 
+    private ToggleButton photoTB;
+    private ToggleButton textTB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,65 @@ public class Qview extends AppCompatActivity
 
         updateNavHeader();
 
+
+        photoTB = findViewById(R.id.photoTB);
+        textTB = findViewById(R.id.textTB);
+
+
+
+
+
+        photoTB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //textTB.setSelected(true);
+                //textTB.setTextOn("Woop");
+
+                textTB.setTextOff("photo unselected 1");
+                textTB.setChecked(false);
+
+            }
+        });
+
+        textTB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //photoTB.setSelected(false);
+                //photoTB.setTextOff("working");
+
+                photoTB.setTextOff("text unselected 1");
+                photoTB.setChecked(false);
+
+            }
+        });/*
+
+        textTB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // The toggle is enabled
+                    photoTB.setTextOff("photo unselected 1");
+                    photoTB.setChecked(false);
+
+                } else {
+                    // The toggle is disabled
+                }
+            }
+        });
+
+        photoTB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // The toggle is enabled
+                    textTB.setTextOff("text unselected 1");
+                    textTB.setChecked(false);
+
+                } else {
+                    // The toggle is disabled
+                }
+            }
+        });
+
+        */
         //getSupportFragmentManager().beginTransaction().replace(R.id.container,new HomeFragment()).commit();
 
     }

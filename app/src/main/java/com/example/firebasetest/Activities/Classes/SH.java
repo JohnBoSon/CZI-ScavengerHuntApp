@@ -12,24 +12,28 @@ public class SH {
     private String ownerId;
     private String title;
     private String description;
+
+
+
     private String endDate;
     private int maxScore;
 
-    ArrayList<Response> responses =new ArrayList<>();
+    public ArrayList<Response> responses =new ArrayList<>();
     private ArrayList<Question> questions =new ArrayList<>();
-    ArrayList<String> particitants =new ArrayList<>();
+    public ArrayList<String> particitants =new ArrayList<>();
 
     public SH() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public SH(String id, String ownerId, String title, String description) {
+    public SH(String id, String ownerId, String title, String description, String date) {
         this.onGoing = false;
         this.id = id;
         this.ownerId = ownerId;
         this.title = title;
         this.description = description;
         this.maxScore = 0;
+        this.endDate = date;
     }
 
 
@@ -38,17 +42,29 @@ public class SH {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         String todayString = formatter.format(todayDate);
 
-        int year = Integer.parseInt(endDate.substring(0,4));
-        int month = Integer.parseInt(endDate.substring(5,7));
+        int year = Integer.parseInt(endDate.substring(0,4)) - 1900;
+        int month = Integer.parseInt(endDate.substring(5,7)) - 1;
         int date = Integer.parseInt(endDate.substring(8));
 
         Date dueDate = new Date(year,month,date);
 
-        if(todayDate.compareTo(dueDate) < 0 ){
+        if(dueDate.after(todayDate) ){
             return true;
         }
 
         return false;
+    }
+
+    public String getFormattedEndDate() {
+
+        int year = Integer.parseInt(endDate.substring(0,4)) - 1900;
+        int month = Integer.parseInt(endDate.substring(5,7)) - 1;
+        int date = Integer.parseInt(endDate.substring(8));
+
+        Date dueDate = new Date(year,month,date);
+        SimpleDateFormat formatter = new SimpleDateFormat("MMM dd,yyyy");
+
+        return formatter.format(dueDate);
     }
 
     public void removeStudentResponse(String studentId){
@@ -122,6 +138,9 @@ public class SH {
     }
 
 
+    public String getEndDate() { return endDate; }
+
+    public void setEndDate(String endDate) { this.endDate = endDate; }
 
     public boolean isOnGoing() {
         return onGoing;

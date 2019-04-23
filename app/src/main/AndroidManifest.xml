@@ -43,13 +43,7 @@
             android:name=".Activities.BNaviTest"
             android:label="@string/title_activity_bnavi_test"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".Activities.TeacherView.TeacherQuestionActivity" />
-        <activity android:name=".Activities.StudentView.StudentQuestionActivity" />
-        <activity android:name=".Activities.TeacherView.EditSHActivity" />
-        <activity android:name=".Activities.TeacherView.CreateSHActivity" />
         <activity android:name=".Activities.EnterSHActivity" />
-        <activity android:name=".Activities.StudentView.StudentSHActivity" />
-        <activity android:name=".Activities.TeacherView.TeacherSHActivity" />
         <activity android:name=".Activities.Beta.Swipe" />
         <activity android:name=".Activities.Beta.UploadGallery" />
         <activity android:name=".Activities.Beta.failDemoUpload" />
@@ -66,7 +60,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.ManageSHActivity" />
+        <activity android:name=".Activities.ManageSHActivity" >
+
+        </activity>
         <activity android:name=".Activities.RegisterActivity" />
     </application>
 
