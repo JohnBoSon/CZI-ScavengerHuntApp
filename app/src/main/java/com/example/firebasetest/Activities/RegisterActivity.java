@@ -101,7 +101,7 @@ public class RegisterActivity extends AppCompatActivity {
             public void onClick(View view) {
                 studentTB.setTextOff("Student");
                 studentTB.setChecked(false);
-                accType = "HOST";
+                accType = "TEACHER";
             }
         });
 
@@ -110,7 +110,7 @@ public class RegisterActivity extends AppCompatActivity {
             public void onClick(View view) {
                 teacherTB.setTextOff("Teacher");
                 teacherTB.setChecked(false);
-                accType = "GUEST";
+                accType = "STUDENT";
             }
         });
 
@@ -156,7 +156,10 @@ public class RegisterActivity extends AppCompatActivity {
         currentUser = mAuth.getCurrentUser();
         ownerId = currentUser.getUid();
         database = FirebaseDatabase.getInstance();
-        database.getReference("User").child(ownerId).setValue(accType);
+        database.getReference("User").child(ownerId).child("accountType").setValue(accType);
+        database.getReference("User").child(ownerId).child("currentQ").setValue("");
+        database.getReference("User").child(ownerId).child("currentR").setValue("");
+        database.getReference("User").child(ownerId).child("currentSH").setValue("");
 
         Intent homeActivity = new Intent(getApplicationContext(),Home.class);
         startActivity(homeActivity);

@@ -180,8 +180,6 @@ public class SHmake extends AppCompatActivity
     private void addSHList(final String SHid, final String ownerId) {
 
         myRef = database.getReference("SHList").child(ownerId);
-
-
         database = FirebaseDatabase.getInstance();
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -198,9 +196,6 @@ public class SHmake extends AppCompatActivity
                             //bundle.putInt("SHIndex", shList.size());
                             //shListSize = shList.size();
                             //showMessage(shList.size()+" - "+shListSize);
-
-
-
 
                         }
 

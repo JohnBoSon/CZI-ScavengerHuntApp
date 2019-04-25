@@ -23,8 +23,14 @@ import com.example.firebasetest.Activities.Beta.Swipe;
 import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.Adapters.SHAdapter;
 import com.example.firebasetest.R;
+import com.google.firebase.FirebaseError;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -33,10 +39,12 @@ public class SHdash extends AppCompatActivity
 
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
-
+    FirebaseDatabase database;
+    DatabaseReference myRef;
     private Button addBtn;
 
     ListView mListView;
+    String ownerId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +55,18 @@ public class SHdash extends AppCompatActivity
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        ownerId = currentUser.getUid();
+
 
         addBtn = findViewById(R.id.addBtn);
 
 
-        mListView = findViewById(R.id.listView);
+        //mListView = findViewById(R.id.listView);
 
 
         //test
         //    public SH(String id, String ownerId, String title, String description, String date)
+ /*
         SH testingScav1 = new SH("THIS", "TEST ", "TITLE IS WORKING", "SCAVENGER", "2029-05-15");
 
         SH testingScav2 = new SH("THIS", "TEST ", "TITLE IS amazing WORKING", "SCAVENGER", "2008-05-15");
@@ -66,13 +77,11 @@ public class SHdash extends AppCompatActivity
         shList.add(testingScav1);
         shList.add(testingScav2);
         shList.add(testingScav1);
+*/
 
 
 
-        SHAdapter adapter = new SHAdapter(this, R.layout.sh_adapter_view_layout, shList);
-        mListView.setAdapter(adapter);
-
-
+        //navi
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -89,11 +98,14 @@ public class SHdash extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getApplicationContext(), SHmake.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+                //addSHList(ownerId);
+
                 finish();
 
             }
         });
 
+ /*
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
@@ -103,6 +115,105 @@ public class SHdash extends AppCompatActivity
 
             }
         });
+*/
+        //updateListView(ownerId);
+
+
+
+    }
+
+    public void updateListView(String ownerId){
+        myRef = database.getReference("SHList").child(ownerId);
+        database = FirebaseDatabase.getInstance();
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
+
+                    //populateSHList(shList);
+                }else{
+
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+    }
+
+    private void addSHList(final String ownerId) {
+
+        myRef = database.getReference("SHList").child(ownerId);
+        database = FirebaseDatabase.getInstance();
+
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
+                    showMessage(shList.size()+ "");
+                    //database = FirebaseDatabase.getInstance();
+                    //database.getReference("SHList").child(ownerId).setValue(shList);
+                }else{
+
+                }
+
+            }
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+    }
+
+    public void populateSHList(ArrayList<String> shList){
+        myRef = database.getReference("SH");
+        database = FirebaseDatabase.getInstance();
+
+            myRef = database.getReference("SH");
+
+            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
+
+                        ArrayList finalSHList = new ArrayList<SH>();
+
+                        for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                            for(int i = 0 ; i < shList.size();i++){
+                                SH tempSH = userSnapshot.child(shList.get(i).toString()).getValue(SH.class);
+
+                                finalSHList.add(tempSH);
+                            }
+                        }
+
+                        SHAdapter adapter = new SHAdapter(getApplicationContext() , R.layout.sh_adapter_view_layout, finalSHList);
+                        mListView.setAdapter(adapter);
+
+
+                    } /*else {
+                        ArrayList finalSHList = new ArrayList<SH>();
+                        SHAdapter adapter = new SHAdapter(getApplicationContext() , R.layout.sh_adapter_view_layout, finalSHList);
+                        mListView.setAdapter(adapter);
+                    }*/
+
+                }
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.out.println("The read failed: " + databaseError.getCode());
+                }
+            });
 
 
     }
@@ -177,6 +288,11 @@ public class SHdash extends AppCompatActivity
 
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
+
+    }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
 
     }
 }
