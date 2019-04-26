@@ -46,6 +46,7 @@ public class SHedit extends AppCompatActivity
     FirebaseDatabase database;
     DatabaseReference myRef;
 
+
     private Button viewQBtn;
 
     private static final String TAG = "MainActivity";
@@ -100,78 +101,37 @@ public class SHedit extends AppCompatActivity
         titleET = findViewById(R.id.titleET);
 
 
+        String index = getIntent().getExtras().getString("CurrentIndex");
+
         //get user shlist
-        myRef = database.getReference("SHList").child(ownerId);
-        myRef.addValueEventListener(new ValueEventListener() {
+
+
+        myRef = database.getReference("SHList").child(ownerId).child(index);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                shList = (ArrayList<String>) dataSnapshot.getValue();
 
-                shCurrentIndex = shList.size() -1;
+                //for now change when listView works
+                SH tempSH = dataSnapshot.getValue(SH.class);
 
-                //get sh
-                myRef = database.getReference("SH").child(shList.get(shCurrentIndex).toString());
-                myRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        currentSH = dataSnapshot.getValue(SH.class);
+                showMessage(tempSH.getTitle());
 
-                        if(currentSH.getDescription().isEmpty()) {
-                            descET.setHint("Description is currently Empty");
-                        }else{
-                            descET.setHint(currentSH.getDescription());
-                        }
+                if(tempSH.getDescription().isEmpty()) {
+                    descET.setHint("Description is currently Empty");
+                }else{
+                    descET.setHint(tempSH.getDescription());
+                }
 
-                        titleET.setHint(currentSH.getTitle());
+                titleET.setHint(tempSH.getTitle());
 
-                        mDisplayDate.setText(currentSH.getFormattedEndDate());
+                mDisplayDate.setText(tempSH.getFormattedEndDate());
 
-                    }
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        System.out.println("The read failed: " + databaseError.getCode());
-                    }
-                });
-
-                //mDisplayDate.setText(""+shCurrentIndex);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 System.out.println("The read failed: " + databaseError.getCode());
             }
         });
-
-
-
-
-
-
-
-
-
-        //get sh index
-
-
-        //myRef = database.getReference("SHList").child(ownerId);
-        //myRef.setValue(shList);
-/*
-        if(currentSH.getDescription().isEmpty()) {
-            descET.setHint("Description is currently Empty");
-        }else{
-            descET.setHint(currentSH.getDescription());
-        }
-
-       titleET.setHint(currentSH.getTitle());
-
-        //titleET.setHint(shList.get(shCurrentIndex).toString());
-        //mDisplayDate.setText(""+);
-
-        //showMessage(bundle.getInt("SHIndex")+"");
-
-        //mDisplayDate.setText(currentSH.getFormattedEndDate());
-
-*/
-
 
         viewQBtn.setOnClickListener(new View.OnClickListener() {
             @Override

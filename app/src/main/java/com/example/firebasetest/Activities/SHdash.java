@@ -1,9 +1,13 @@
 package com.example.firebasetest.Activities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,6 +17,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
@@ -23,13 +30,17 @@ import com.example.firebasetest.Activities.Beta.Swipe;
 import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.Adapters.SHAdapter;
 import com.example.firebasetest.R;
+import com.firebase.ui.database.FirebaseListAdapter;
+import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.FirebaseError;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -46,6 +57,10 @@ public class SHdash extends AppCompatActivity
     ListView mListView;
     String ownerId;
 
+    //test
+    ListView lv;
+    FirebaseListAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,27 +72,55 @@ public class SHdash extends AppCompatActivity
         currentUser = mAuth.getCurrentUser();
         ownerId = currentUser.getUid();
 
-
         addBtn = findViewById(R.id.addBtn);
 
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SHList").child(ownerId);
 
-        //mListView = findViewById(R.id.listView);
+        //test listView from indian god like tutorial
+
+        lv = (ListView) findViewById(R.id.listView);
+        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId);
+
+        FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
+                    .setLayout(R.layout.sh_adapter_view_layout)
+                    .setLifecycleOwner(SHdash.this)
+                    .setQuery(query,SH.class)
+                    .build();
+
+        adapter = new FirebaseListAdapter<SH>(options) {
+            @Override
+            protected void populateView(View v, SH model, int position) {
+                SH cSH = (SH) model;
+                String shTitle = cSH.getTitle();
+                String onGoingStatus;
+
+                if(cSH.checkOngoing()){
+                    onGoingStatus = "OnGoing";
+                }else{
+                    onGoingStatus = "Ended";
+                }
+
+                String numPeople =  cSH.particitants.size() + " Participants";
+
+                TextView title = (TextView) v.findViewById(R.id.textView1);
+                TextView participants = (TextView) v.findViewById(R.id.textView2);
+                TextView ongoingStatus = (TextView) v.findViewById(R.id.textView3);
+
+                title.setText(shTitle);
+                participants.setText(onGoingStatus);
+                ongoingStatus.setText(numPeople);
+
+                Animation animation = null;
+                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                v.startAnimation(animation);
+
+            }
+        };
+
+        lv.setAdapter(adapter);
 
 
-        //test
-        //    public SH(String id, String ownerId, String title, String description, String date)
- /*
-        SH testingScav1 = new SH("THIS", "TEST ", "TITLE IS WORKING", "SCAVENGER", "2029-05-15");
-
-        SH testingScav2 = new SH("THIS", "TEST ", "TITLE IS amazing WORKING", "SCAVENGER", "2008-05-15");
-
-        final ArrayList<SH> shList = new ArrayList<>();
-        shList.add(testingScav1);
-        shList.add(testingScav2);
-        shList.add(testingScav1);
-        shList.add(testingScav2);
-        shList.add(testingScav1);
-*/
 
 
 
@@ -105,19 +148,30 @@ public class SHdash extends AppCompatActivity
             }
         });
 
- /*
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
 
                 //shList.get(i).getTitle();
-                Toast.makeText(SHdash.this, "Clicked "+ shList.get(index).getTitle(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
 
             }
         });
-*/
+
         //updateListView(ownerId);
 
+
+
+    }
+
+
+
+    public void showList(DataSnapshot dataSnap){
+            mListView = findViewById(R.id.listView);
+            ArrayList<SH> shList = (ArrayList<SH>) dataSnap.getValue();
+            SHAdapter adapter = new SHAdapter(getApplicationContext(), R.layout.sh_adapter_view_layout, shList);
+            mListView.setAdapter(adapter);
 
 
     }
@@ -195,6 +249,8 @@ public class SHdash extends AppCompatActivity
                                 SH tempSH = userSnapshot.child(shList.get(i).toString()).getValue(SH.class);
 
                                 finalSHList.add(tempSH);
+
+
                             }
                         }
 

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
@@ -65,7 +64,6 @@ public class SHmake extends AppCompatActivity
 
 
     boolean found;
-    private ArrayList shList;
 
     int shListSize = -9;
     boolean stopLoop = false;
@@ -127,15 +125,6 @@ public class SHmake extends AppCompatActivity
 
                     //bundle.putInt("SHIndex", shListSize);
 
-                    Intent intent = new Intent(getApplicationContext(), SHedit.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    //intent.putExtra("SHIndex", shListSize);
-
-                    //showMessage(""+shListSize);
-                    startActivity(intent);
-
-                    //startActivity(new Intent(getApplicationContext(), SHedit.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
-                    finish();
                 }
 
 
@@ -177,49 +166,54 @@ public class SHmake extends AppCompatActivity
         };
     }
 
-    private void addSHList(final String SHid, final String ownerId) {
+    private void addSHList( final String ownerId, final SH newSH) {
 
-        myRef = database.getReference("SHList").child(ownerId);
         database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SHList").child(ownerId);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
-                        shList = (ArrayList<String>) dataSnapshot.getValue();
-                        shList.add(SHid);
-                        database = FirebaseDatabase.getInstance();
-                        database.getReference("SHList").child(ownerId).setValue(shList);
-
-
-                        if(shList.size()!=0){
-                            //bundle.putInt("SHIndex", shList.size());
-                            //shListSize = shList.size();
-                            //showMessage(shList.size()+" - "+shListSize);
-
-                        }
+                    final ArrayList shList = (ArrayList<SH>) dataSnapshot.getValue();
+                    shList.add(newSH);
+                    database = FirebaseDatabase.getInstance();
+                    database.getReference("SHList").child(ownerId).setValue(shList);
 
                     //showMessage("size exist" + shList.size() );
                     //showMessage("exists" + shList.size() + " " +shList.get(0)) ;
-                    found = true;
-                    stopLoop = true;
+                    Intent intent = new Intent(getApplicationContext(), SHedit.class);
+
+                    String index = shList.size()-1 + "";
+                    intent.putExtra("CurrentIndex", index);
+
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    //intent.putExtra("SHIndex", shListSize);
+
+                    //showMessage(""+shListSize);
+                    startActivity(intent);
+
+                    //startActivity(new Intent(getApplicationContext(), SHedit.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+                    finish();
 
                 }else{
                     //showMessage("does not exists") ;
 
                     //showMessage("size dnt" + shList.size() );
-                    shList = new ArrayList<String>();
-                    shList.add(SHid);
+                    final ArrayList shList = new ArrayList<SH>();
+                    shList.add(newSH);
                     myRef = database.getReference("SHList").child(ownerId);
                     myRef.setValue(shList);
 
-                    if(shList.size()!=0){
-                        //bundle.putInt("SHIndex", shList.size());
-                        //shListSize = shList.size();
-                        //showMessage(shList.size()+" - "+shListSize);
+                    Intent intent = new Intent(getApplicationContext(), SHedit.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    //intent.putExtra("SHIndex", shListSize);
 
+                    //showMessage(""+shListSize);
+                    startActivity(intent);
 
-                    }
+                    //startActivity(new Intent(getApplicationContext(), SHedit.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+                    finish();
 
 
                 }
@@ -243,7 +237,7 @@ public class SHmake extends AppCompatActivity
         SH newSH = new SH(id,ownerId, title, "", date);
         database.getReference("SH").child(id).setValue(newSH);
 
-        addSHList(id,ownerId);
+        addSHList(ownerId, newSH);
     }
 
     @Override

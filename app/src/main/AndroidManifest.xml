@@ -60,9 +60,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.ManageSHActivity" >
+        <activity android:name=".Activities.ManageSHActivity" />
 
-        </activity>
         <activity android:name=".Activities.RegisterActivity" />
     </application>
 
