@@ -49,6 +49,11 @@ public class SHedit extends AppCompatActivity
 
     private Button viewQBtn;
 
+    private Button deleteBtn;
+    private Button saveBtn;
+    private Button resultsBtn;
+
+
     private static final String TAG = "MainActivity";
     private TextView mDisplayDate;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
@@ -63,6 +68,12 @@ public class SHedit extends AppCompatActivity
 
     String ownerId;
 
+    String eTitle;
+    String eDate;
+    String eDesc;
+
+    String index;
+    String cSHid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +86,14 @@ public class SHedit extends AppCompatActivity
         currentUser = mAuth.getCurrentUser();
 
         viewQBtn = findViewById(R.id.viewQBtn);
+        deleteBtn = findViewById(R.id.deleteBtn);
+        saveBtn = findViewById(R.id.saveBtn);
+        resultsBtn = findViewById(R.id.resultsBtn);
+        index = getIntent().getExtras().getString("CurrentIndex");
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
+
+
+
         mDisplayDate = (TextView) findViewById(R.id.dateTV);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -100,8 +119,7 @@ public class SHedit extends AppCompatActivity
         descET = findViewById(R.id.descET);
         titleET = findViewById(R.id.titleET);
 
-
-        String index = getIntent().getExtras().getString("CurrentIndex");
+        eDate = "";
 
         //get user shlist
 
@@ -136,9 +154,51 @@ public class SHedit extends AppCompatActivity
         viewQBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                prepareBundleAndFinish(Qdash.class);
+            }
+        });
+
+        deleteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                removeSHFromSHList( Integer.parseInt(index));
+
+            }
+        });
+
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!descET.getText().toString().isEmpty()){
+                    database.getReference("SHList").child(ownerId).child(index).child("description").setValue(descET.getText().toString());
+                    database.getReference("SH").child(cSHid).child("description").setValue(descET.getText().toString());
+                }
+
+                if(!titleET.getText().toString().isEmpty()){
+                    database.getReference("SHList").child(ownerId).child(index).child("title").setValue(titleET.getText().toString());
+                    database.getReference("SH").child(cSHid).child("title").setValue(titleET.getText().toString());
+                }
+
+                if(eDate != ""){
+                    database.getReference("SHList").child(ownerId).child(index).child("endDate").setValue(eDate);
+                    database.getReference("SH").child(cSHid).child("endDate").setValue(eDate);
+                }
+
+                database.getReference("SHList").child(ownerId).child(index).child("formattedEndDate").setValue(mDisplayDate.getText().toString());
+                database.getReference("SH").child(cSHid).child("formattedEndDate").setValue(mDisplayDate.getText().toString());
+
+                showMessage("save successful");
+
+
+            }
+        });
+
+        resultsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 startActivity(new Intent(getApplicationContext(), Qdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                 finish();
-
             }
         });
 
@@ -166,24 +226,60 @@ public class SHedit extends AppCompatActivity
                 month = month + 1;
                 Log.d(TAG, "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
 
-
                 Date newDate = new Date(year-1900,month-1,day);
                 SimpleDateFormat formatter = new SimpleDateFormat("MMM dd,yyyy");
                 String date = formatter.format(newDate);
+
+                SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd");
+                eDate = formatter2.format(newDate);
 
                 mDisplayDate.setText(date);
             }
         };
     }
 
+    private void prepareBundleAndFinish(Class nextView) {
+        Intent intent = new Intent(getApplicationContext(), nextView);
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentIndex", index);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
+    }
+
+    private void removeSHFromSHList(final int index) {
+
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SHList").child(ownerId);
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final ArrayList shList = (ArrayList<SH>) dataSnapshot.getValue();
+                shList.remove(index);
+                database.getReference("SHList").child(ownerId).setValue(shList);
+                database.getReference("SH").child(cSHid).removeValue();
+                showMessage("Scavenger Hunt Deleted");
+                Intent intent = new Intent(getApplicationContext(), SHdash.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+    }
+
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        Intent intent = new Intent(getApplicationContext(), SHdash.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -263,8 +359,6 @@ public class SHedit extends AppCompatActivity
 
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
-
-
 
 
     }

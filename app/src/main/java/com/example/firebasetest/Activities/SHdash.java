@@ -1,13 +1,7 @@
 package com.example.firebasetest.Activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -17,7 +11,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
@@ -26,16 +19,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.firebasetest.Activities.Beta.Swipe;
 import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.Adapters.SHAdapter;
 import com.example.firebasetest.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
-import com.google.firebase.FirebaseError;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -61,6 +51,8 @@ public class SHdash extends AppCompatActivity
     ListView lv;
     FirebaseListAdapter adapter;
 
+    String index;
+    String cSHid;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +68,10 @@ public class SHdash extends AppCompatActivity
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("SHList").child(ownerId);
+
+
+        index = getIntent().getExtras().getString("CurrentIndex");
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
 
         //test listView from indian god like tutorial
 
@@ -121,9 +117,6 @@ public class SHdash extends AppCompatActivity
         lv.setAdapter(adapter);
 
 
-
-
-
         //navi
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -152,20 +145,27 @@ public class SHdash extends AppCompatActivity
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-
-                //shList.get(i).getTitle();
                 Toast.makeText(SHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
-
+                prepareBundleAndFinish(Qview.class, index + "");
             }
         });
 
-        //updateListView(ownerId);
 
 
 
     }
 
 
+    private void prepareBundleAndFinish(Class nextView, String qIndex) {
+        Intent intent = new Intent(getApplicationContext(), nextView);
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentIndex", index);
+        intent.putExtra("CurrentQIndex", qIndex);
+
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
+    }
 
     public void showList(DataSnapshot dataSnap){
             mListView = findViewById(R.id.listView);

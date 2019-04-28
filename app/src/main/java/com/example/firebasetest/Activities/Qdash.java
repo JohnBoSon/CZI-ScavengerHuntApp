@@ -13,20 +13,39 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.R;
+import com.firebase.ui.database.FirebaseListAdapter;
+import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
 public class Qdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
-
+    FirebaseDatabase database;
+    DatabaseReference myRef;
     private Button addBtn;
+
+    ListView mListView;
+    String ownerId;
+
+    //test
+    ListView lv;
+    FirebaseListAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,10 +56,40 @@ public class Qdash extends AppCompatActivity
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        ownerId = currentUser.getUid();
 
         addBtn = findViewById(R.id.addBtn);
 
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SHList").child(ownerId);
 
+        lv = (ListView) findViewById(R.id.listView);
+        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId);
+
+        FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
+                .setLayout(R.layout.adapter_question_view)
+                .setLifecycleOwner(Qdash.this)
+                .setQuery(query,SH.class)
+                .build();
+
+        adapter = new FirebaseListAdapter<SH>(options) {
+            @Override
+            protected void populateView(View v, SH model, int position) {
+                TextView title = (TextView) v.findViewById(R.id.textView1);
+
+                title.setText("Question " + position);
+
+                Animation animation = null;
+                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                v.startAnimation(animation);
+
+            }
+        };
+
+        lv.setAdapter(adapter);
+
+
+        //navi
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -58,21 +107,33 @@ public class Qdash extends AppCompatActivity
             public void onClick(View view) {
                 startActivity(new Intent(getApplicationContext(), Qview.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                 finish();
+            }
+        });
+
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
+                Toast.makeText(Qdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
+                prepareBundleAndFinish(index + "");
 
             }
         });
-        //getSupportFragmentManager().beginTransaction().replace(R.id.container,new HomeFragment()).commit();
+    }
 
+    private void prepareBundleAndFinish(String index){
+        Intent intent = new Intent(getApplicationContext(), Qview.class);
+        intent.putExtra("CurrentQIndex", index);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        Intent intent = new Intent(getApplicationContext(), SHedit.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     @Override

@@ -186,6 +186,8 @@ public class SHmake extends AppCompatActivity
 
                     String index = shList.size()-1 + "";
                     intent.putExtra("CurrentIndex", index);
+                    intent.putExtra("CurrentSHid", newSH.getId());
+
 
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                     //intent.putExtra("SHIndex", shListSize);
@@ -203,10 +205,15 @@ public class SHmake extends AppCompatActivity
                     final ArrayList shList = new ArrayList<SH>();
                     shList.add(newSH);
                     myRef = database.getReference("SHList").child(ownerId);
+
                     myRef.setValue(shList);
+                    String index = "0";
 
                     Intent intent = new Intent(getApplicationContext(), SHedit.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    intent.putExtra("CurrentSHid", newSH.getId());
+                    intent.putExtra("CurrentIndex", index);
+
                     //intent.putExtra("SHIndex", shListSize);
 
                     //showMessage(""+shListSize);
