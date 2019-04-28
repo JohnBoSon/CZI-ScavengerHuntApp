@@ -6,6 +6,10 @@ public class Question {
     String title;
     String replyType;
 
+    public Question() {
+        // Default constructor required for calls to DataSnapshot.getValue(User.class)
+    }
+
     public Question(String description, String id, String title, String replyType) {
         this.description = description;
         this.id = id;

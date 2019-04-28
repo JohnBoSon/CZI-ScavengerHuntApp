@@ -21,15 +21,21 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Classes.Question;
 import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 public class Qdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -47,6 +53,9 @@ public class Qdash extends AppCompatActivity
     ListView lv;
     FirebaseListAdapter adapter;
 
+    String index;
+    String cSHid;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,13 +67,16 @@ public class Qdash extends AppCompatActivity
         currentUser = mAuth.getCurrentUser();
         ownerId = currentUser.getUid();
 
+        index = getIntent().getExtras().getString("CurrentIndex");
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
+
         addBtn = findViewById(R.id.addBtn);
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("SHList").child(ownerId);
 
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId);
+        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId).child(index).child("questions");
 
         FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
                 .setLayout(R.layout.adapter_question_view)
@@ -105,35 +117,83 @@ public class Qdash extends AppCompatActivity
         addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), Qview.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
-                finish();
+                addQPrepareBundleAndFinish();
             }
         });
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                Toast.makeText(Qdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
-                prepareBundleAndFinish(index + "");
+            public void onItemClick(AdapterView<?> adapterView, View view, int qIndex, long l) {
+                Toast.makeText(Qdash.this, "Clicked "+ qIndex, Toast.LENGTH_SHORT).show();
+                prepareBundleAndFinish(qIndex + "");
 
             }
         });
     }
 
-    private void prepareBundleAndFinish(String index){
+    private void prepareBundleAndFinish(String qIndex){
         Intent intent = new Intent(getApplicationContext(), Qview.class);
-        intent.putExtra("CurrentQIndex", index);
+        intent.putExtra("isNewQ", "FALSE");
+        intent.putExtra("CurrentQIndex", qIndex);
+        intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
+        intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
         finish();
     }
 
+    private void addQPrepareBundleAndFinish(){
+
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions");
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    final ArrayList qList = (ArrayList<Question>) dataSnapshot.getValue();
+
+                    String qIndex = qList.size() + "";
+                    Intent intent = new Intent(getApplicationContext(), Qview.class);
+                    intent.putExtra("isNewQ", "TRUE");
+                    intent.putExtra("CurrentQIndex", qIndex);
+                    intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
+                    intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(intent);
+                    finish();
+
+                }else{
+                    String qIndex = "0";
+                    Intent intent = new Intent(getApplicationContext(), Qview.class);
+                    intent.putExtra("isNewQ", "TRUE");
+                    intent.putExtra("CurrentQIndex", qIndex);
+                    intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
+                    intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(intent);
+                    finish();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+    }
+
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(getApplicationContext(), SHedit.class);
+
+        intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
+        intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
-        finish();
+        //finish();
     }
 
     @Override

@@ -21,8 +21,8 @@
         android:background="@drawable/reg_edittext_style"
         android:ems="10"
         android:gravity="center"
-        android:hint="Current Title"
-        android:inputType="textPassword"
+        android:hint="Enter Title"
+        android:inputType="text"
         app:layout_constraintBottom_toTopOf="@+id/descET"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -39,8 +39,8 @@
         android:background="@drawable/reg_edittext_style"
         android:ems="10"
         android:gravity="center"
-        android:hint="Current Description"
-        android:inputType="textPassword"
+        android:hint="Enter Description"
+        android:inputType="text"
         app:layout_constraintBottom_toTopOf="@+id/guideline4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

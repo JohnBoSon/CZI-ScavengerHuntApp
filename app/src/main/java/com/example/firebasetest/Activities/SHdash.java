@@ -51,8 +51,6 @@ public class SHdash extends AppCompatActivity
     ListView lv;
     FirebaseListAdapter adapter;
 
-    String index;
-    String cSHid;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,10 +66,6 @@ public class SHdash extends AppCompatActivity
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("SHList").child(ownerId);
-
-
-        index = getIntent().getExtras().getString("CurrentIndex");
-        cSHid = getIntent().getExtras().getString("CurrentSHid");
 
         //test listView from indian god like tutorial
 
@@ -97,7 +91,7 @@ public class SHdash extends AppCompatActivity
                     onGoingStatus = "Ended";
                 }
 
-                String numPeople =  cSH.particitants.size() + " Participants";
+                String numPeople =  cSH.participants.size() + " Participants";
 
                 TextView title = (TextView) v.findViewById(R.id.textView1);
                 TextView participants = (TextView) v.findViewById(R.id.textView2);
@@ -146,7 +140,8 @@ public class SHdash extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
                 Toast.makeText(SHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
-                prepareBundleAndFinish(Qview.class, index + "");
+                prepareBundleAndFinish(""+index);
+
             }
         });
 
@@ -155,17 +150,32 @@ public class SHdash extends AppCompatActivity
 
     }
 
+    private void prepareBundleAndFinish( final String index) {
 
-    private void prepareBundleAndFinish(Class nextView, String qIndex) {
-        Intent intent = new Intent(getApplicationContext(), nextView);
-        intent.putExtra("CurrentSHid", cSHid);
-        intent.putExtra("CurrentIndex", index);
-        intent.putExtra("CurrentQIndex", qIndex);
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SHList").child(ownerId).child(index);
 
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(intent);
-        finish();
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+                Intent intent = new Intent(getApplicationContext(), SHedit.class);
+                intent.putExtra("CurrentSHid", sh.getId());
+                intent.putExtra("CurrentIndex", index);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
     }
+
+
 
     public void showList(DataSnapshot dataSnap){
             mListView = findViewById(R.id.listView);

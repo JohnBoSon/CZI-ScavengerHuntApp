@@ -48,7 +48,7 @@ public class SHAdapter extends ArrayAdapter<SH> {
         }
 
 
-        String numPeople =  getItem(position).particitants.size() + " Participants";
+        String numPeople =  getItem(position).participants.size() + " Participants";
 
 
                 //public SH(String id, String ownerId, String title, String description, String date)

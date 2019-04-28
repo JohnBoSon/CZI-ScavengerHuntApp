@@ -23,6 +23,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Classes.Question;
 import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.R;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -180,8 +181,6 @@ public class SHmake extends AppCompatActivity
                     database = FirebaseDatabase.getInstance();
                     database.getReference("SHList").child(ownerId).setValue(shList);
 
-                    //showMessage("size exist" + shList.size() );
-                    //showMessage("exists" + shList.size() + " " +shList.get(0)) ;
                     Intent intent = new Intent(getApplicationContext(), SHedit.class);
 
                     String index = shList.size()-1 + "";
@@ -190,18 +189,13 @@ public class SHmake extends AppCompatActivity
 
 
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    //intent.putExtra("SHIndex", shListSize);
 
-                    //showMessage(""+shListSize);
                     startActivity(intent);
 
-                    //startActivity(new Intent(getApplicationContext(), SHedit.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                     finish();
 
                 }else{
-                    //showMessage("does not exists") ;
 
-                    //showMessage("size dnt" + shList.size() );
                     final ArrayList shList = new ArrayList<SH>();
                     shList.add(newSH);
                     myRef = database.getReference("SHList").child(ownerId);
@@ -214,12 +208,9 @@ public class SHmake extends AppCompatActivity
                     intent.putExtra("CurrentSHid", newSH.getId());
                     intent.putExtra("CurrentIndex", index);
 
-                    //intent.putExtra("SHIndex", shListSize);
 
-                    //showMessage(""+shListSize);
                     startActivity(intent);
 
-                    //startActivity(new Intent(getApplicationContext(), SHedit.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                     finish();
 
 
@@ -242,6 +233,24 @@ public class SHmake extends AppCompatActivity
         showMessage("create new SH ") ;
 
         SH newSH = new SH(id,ownerId, title, "", date);
+
+
+/*
+        Question q1 = new Question( "wa", "pa" , "ha", "ma");
+        Question q2 = new Question( "wa2", "pa2" , "ha2", "ma2");
+        Question q3 = new Question( "wa3", "pa3" , "ha3", "ma3");
+        Question q4 = new Question( "wa4", "pa4" , "ha4", "ma4");
+
+        ArrayList<Question> q =new ArrayList<>();
+
+        q.add(q1);
+        q.add(q2);
+        q.add(q3);
+        q.add(q4);
+
+
+        newSH.questions = q;
+*/
         database.getReference("SH").child(id).setValue(newSH);
 
         addSHList(ownerId, newSH);

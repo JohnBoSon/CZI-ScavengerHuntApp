@@ -9,6 +9,10 @@ public class Response {
     boolean graded;
     boolean pass;
 
+    public Response() {
+
+    }
+
     public Response(String reply, String id, String replierId, boolean isImage, String questionId) {
         this.reply = reply;
         this.id = id;

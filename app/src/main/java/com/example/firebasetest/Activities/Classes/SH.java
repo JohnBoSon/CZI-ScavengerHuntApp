@@ -19,8 +19,8 @@ public class SH {
     private int maxScore;
 
     public ArrayList<Response> responses =new ArrayList<>();
-    private ArrayList<Question> questions =new ArrayList<>();
-    public ArrayList<String> particitants =new ArrayList<>();
+    public ArrayList<Question> questions =new ArrayList<>();
+    public ArrayList<String> participants =new ArrayList<>();
 
     public SH() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -77,15 +77,6 @@ public class SH {
         }
     }
 
-    public void addQuestion(Question newQ){
-        questions.add(newQ);
-        maxScore++;
-    }
-
-    public void editQuestion(int index, Question newQ){
-        questions.set(index, newQ);
-    }
-
 
     public void removeRespQues(Question q){
         for(int i=0; i<responses.size(); i++) {
@@ -96,7 +87,6 @@ public class SH {
             }
         }
         questions.remove(questions.indexOf(q));
-        maxScore--;
     }
 
 
@@ -182,7 +172,7 @@ public class SH {
         this.description = description;
     }
 
-    public Integer getMaxScore() { return maxScore; }
+    public Integer getMaxScore() { return questions.size(); }
 
     public void setMaxScore(Integer maxScore) { this.maxScore = maxScore; }
 
