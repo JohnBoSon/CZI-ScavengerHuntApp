@@ -47,6 +47,10 @@ public class Rdash extends AppCompatActivity
     //test
     ListView lv;
     FirebaseListAdapter adapter;
+    private Button statsBtn;
+    private Button qGradeBtn;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +70,37 @@ public class Rdash extends AppCompatActivity
         //addResultsToDB(generateFakeResults());
 
         lv = (ListView) findViewById(R.id.listView);
+        qGradeBtn = (Button) findViewById(R.id.qGradeBtn);
+        statsBtn = (Button) findViewById(R.id.statsBtn);
+
+
+        setUpListView();
+
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
+                Toast.makeText(Rdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+        statsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            }
+        });
+
+        qGradeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            }
+        });
+
+        menuBarSetUp();
+
+    }
+
+    private void setUpListView(){
         Query query = database.getReference().child("SHList").child(ownerId).child(index).child("responses");
 
         FirebaseListOptions<Response> options = new FirebaseListOptions.Builder<Response>()
@@ -103,21 +138,15 @@ public class Rdash extends AppCompatActivity
         };
 
         lv.setAdapter(adapter);
+    }
 
-
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                Toast.makeText(Rdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
-
-            }
-        });
-
-        menuBarSetUp();
-
-
-
-
+    private void prepareBundleAndFinish(Class nextView) {
+        Intent intent = new Intent(getApplicationContext(), nextView);
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentIndex", index);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -212,5 +241,10 @@ public class Rdash extends AppCompatActivity
         TextView navUserMail = headerView.findViewById(R.id.nav_user_mail);
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
+    }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+
     }
 }

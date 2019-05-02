@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,37 +14,84 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
+import com.example.firebasetest.Activities.Classes.Question;
+import com.example.firebasetest.Activities.Classes.Response;
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class Rview extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
+    DatabaseReference myRef;
+    private FirebaseDatabase database;
+    private String ownerId;
+
+    TextView questionTV;
+    TextView titleTV;
+    TextView replierNameTV;
+    TextView TextReplyTv;
+    EditText noteET;
+    ToggleButton acceptTB;
+    ToggleButton declineTB;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home2);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        database = FirebaseDatabase.getInstance();
+        ownerId = currentUser.getUid();
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        updateNavHeader();
+        setUpView();
+
+        menuBarSetUp();
 
 
+    }
+
+    private void setUpView(){
+        //showMessage("owner" + ownerId + ", index" + index + ", iQ:" +getIntent().getExtras().getString("CurrentQIndex"));
+        //myRef = database.getReference("SHList").child(ownerId).child(index).child("questions").child(qindex);
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                Response r = dataSnapshot.getValue(Response.class);
+
+                questionTV.setText("text");
+                titleTV.setText("text");
+                replierNameTV.setText("text");
+                TextReplyTv.setText("text");
+                noteET.setHint("text");
+                acceptTB.setText("text");
+                declineTB.setText("text");
+
+//                textTB.setTextOff("text");
+//                textTB.setChecked(false);
+//                photoTB.setChecked(true);
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
 
     }
 
@@ -90,7 +138,6 @@ public class Rview extends AppCompatActivity
 
             this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
 
-
         }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
@@ -115,6 +162,24 @@ public class Rview extends AppCompatActivity
 
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
+
+    }
+
+    private void menuBarSetUp(){
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
+    }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
 
     }
 }

@@ -8,6 +8,7 @@ public class Response {
     String questionId;
     boolean graded;
     boolean pass;
+    String note;
 
     public Response() {
 
@@ -19,6 +20,7 @@ public class Response {
         this.replierId = replierId;
         this.isImage = isImage;
         this.questionId = questionId;
+        this.note = "";
     }
 
     public String getReply() { return reply; }

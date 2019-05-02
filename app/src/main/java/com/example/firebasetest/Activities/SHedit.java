@@ -197,8 +197,7 @@ public class SHedit extends AppCompatActivity
         resultsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), Qdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
-                finish();
+                prepareBundleAndFinish(Rdash.class);
             }
         });
 
