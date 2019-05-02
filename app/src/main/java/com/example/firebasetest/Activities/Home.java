@@ -1,6 +1,7 @@
 package com.example.firebasetest.Activities;
 
 import android.content.Intent;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -15,12 +16,30 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.anychart.AnyChart;
+import com.anychart.AnyChartView;
+import com.anychart.chart.common.dataentry.DataEntry;
+import com.anychart.chart.common.dataentry.ValueDataEntry;
+import com.anychart.chart.common.listener.Event;
+import com.anychart.chart.common.listener.ListenersInterface;
+import com.anychart.charts.Pie;
+import com.anychart.enums.Align;
+import com.anychart.enums.LegendLayout;
 import com.example.firebasetest.Activities.Beta.Swipe;
 import com.example.firebasetest.Activities.Beta.UploadGallery;
+import com.example.firebasetest.Activities.Classes.Question;
 import com.example.firebasetest.Fragments.HomeFragment;
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Home extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -30,6 +49,9 @@ public class Home extends AppCompatActivity
     FirebaseUser currentUser ;
 
     Button demoButton;
+
+    DatabaseReference myRef;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,9 +81,79 @@ public class Home extends AppCompatActivity
         demoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), UploadGallery.class);
 
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
                 Toast.makeText(getApplicationContext(), "demo button works", Toast.LENGTH_SHORT).show();
 
+            }
+        });
+
+
+        ArrayList<Integer> k = new ArrayList<>();
+
+        k.add(500);
+        k.add(150);
+        k.add(200);
+        k.add(300);
+
+        FirebaseDatabase.getInstance().getReference("beta").child("chartTest").setValue(k);
+
+        myRef = FirebaseDatabase.getInstance().getReference("beta").child("chartTest");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final ArrayList list = (ArrayList<Integer>) dataSnapshot.getValue();
+
+                //for now change when listView works
+                AnyChartView anyChartView = findViewById(R.id.any_chart_view);
+                anyChartView.setProgressBar(findViewById(R.id.progress_bar));
+
+                Pie pie = AnyChart.pie();
+
+                List<DataEntry> data = new ArrayList<>();
+/*
+                data.add(new ValueDataEntry("Apples", 6371664));
+                data.add(new ValueDataEntry("Apples", 54567));
+                data.add(new ValueDataEntry("Apples", 235654));
+                data.add(new ValueDataEntry("Apples", 8765435));
+
+                data.add(new ValueDataEntry("Pears", 789622));
+                data.add(new ValueDataEntry("Bananas", 7216301));
+                data.add(new ValueDataEntry("Grapes", 1486621));
+                data.add(new ValueDataEntry("Oranges", 1200000));
+*/
+
+                for(int i = 0; i< list.size(); i++){
+                    data.add(new ValueDataEntry("Apple ", (Number) list.get(i)));
+                }
+
+
+                pie.data(data);
+
+                pie.title("Fruits imported in 2015 (in kg)");
+
+                pie.labels().position("outside");
+
+                pie.legend().title().enabled(true);
+                pie.legend().title()
+                        .text("Retail channels")
+                        .padding(0d, 0d, 10d, 0d);
+
+                pie.legend()
+                        .position("center-bottom")
+                        .itemsLayout(LegendLayout.HORIZONTAL)
+                        .align(Align.CENTER);
+
+                anyChartView.setChart(pie);
+
+
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
             }
         });
 

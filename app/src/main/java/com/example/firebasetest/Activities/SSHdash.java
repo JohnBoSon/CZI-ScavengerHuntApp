@@ -21,45 +21,32 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.firebasetest.Activities.Classes.Question;
 import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
-
-public class Qdash extends AppCompatActivity
+public class SSHdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
     FirebaseDatabase database;
     DatabaseReference myRef;
-    private Button addBtn;
-
-    ListView mListView;
     String ownerId;
 
     //test
     ListView lv;
     FirebaseListAdapter adapter;
 
-    String index;
-    String cSHid;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_qdash);
+        setContentView(R.layout.activity_sshdash);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -67,29 +54,48 @@ public class Qdash extends AppCompatActivity
         currentUser = mAuth.getCurrentUser();
         ownerId = currentUser.getUid();
 
-        index = getIntent().getExtras().getString("CurrentIndex");
-        cSHid = getIntent().getExtras().getString("CurrentSHid");
-
-        addBtn = findViewById(R.id.addBtn);
-
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("SHList").child(ownerId);
 
+
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId).child(index).child("questions");
+        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId);
 
         FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
-                .setLayout(R.layout.adapter_question_view)
-                .setLifecycleOwner(Qdash.this)
+                .setLayout(R.layout.sh_adapter_view_layout)
+                .setLifecycleOwner(SSHdash.this)
                 .setQuery(query,SH.class)
                 .build();
 
         adapter = new FirebaseListAdapter<SH>(options) {
             @Override
             protected void populateView(View v, SH model, int position) {
-                TextView title = (TextView) v.findViewById(R.id.textView1);
+                SH cSH = (SH) model;
+                String shTitle = cSH.getTitle();
+                String onGoingStatus;
+                String completed;
 
-                title.setText("Question " + position);
+                if(cSH.checkOngoing()){
+                    onGoingStatus = "OnGoing";
+                }else{
+                    onGoingStatus = "Ended";
+                }
+
+                if(true){
+                    completed =  "Finished and Submitted";
+                }else if (false){
+                    completed =  "Unfinished but Submitted";
+                }else{
+                    completed = "Unfinished";
+                }
+
+                TextView title = (TextView) v.findViewById(R.id.textView1);
+                TextView participants = (TextView) v.findViewById(R.id.textView2);
+                TextView completedStatus = (TextView) v.findViewById(R.id.textView3);
+
+                title.setText(shTitle);
+                participants.setText(onGoingStatus);
+                completedStatus.setText(completed);
 
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
@@ -114,83 +120,29 @@ public class Qdash extends AppCompatActivity
 
         updateNavHeader();
 
-        addBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addQPrepareBundleAndFinish();
-            }
-        });
+
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int qIndex, long l) {
-                Toast.makeText(Qdash.this, "Clicked "+ qIndex, Toast.LENGTH_SHORT).show();
-                prepareBundleAndFinish(qIndex + "");
+            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
+                Toast.makeText(SSHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
 
             }
         });
-    }
 
-    private void prepareBundleAndFinish(String qIndex){
-        Intent intent = new Intent(getApplicationContext(), Qview.class);
-        intent.putExtra("isNewQ", "FALSE");
-        intent.putExtra("CurrentQIndex", qIndex);
-        intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
-        intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(intent);
-        finish();
-    }
 
-    private void addQPrepareBundleAndFinish(){
 
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SH").child(cSHid).child("questions");
-
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()){
-                    final ArrayList qList = (ArrayList<Question>) dataSnapshot.getValue();
-                    String qIndex = qList.size() + "";
-                    Intent intent = new Intent(getApplicationContext(), Qview.class);
-                    intent.putExtra("isNewQ", "TRUE");
-                    intent.putExtra("CurrentQIndex", qIndex);
-                    intent.putExtra("CurrentSHid", cSHid);
-                    intent.putExtra("CurrentIndex", index);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    startActivity(intent);
-                    finish();
-                }else{
-                    String qIndex = "0";
-                    Intent intent = new Intent(getApplicationContext(), Qview.class);
-                    intent.putExtra("isNewQ", "TRUE");
-                    intent.putExtra("CurrentQIndex", qIndex);
-                    intent.putExtra("CurrentSHid", cSHid);
-                    intent.putExtra("CurrentIndex", index);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    startActivity(intent);
-                    finish();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
-            }
-        });
 
     }
 
     @Override
     public void onBackPressed() {
-        Intent intent = new Intent(getApplicationContext(), SHedit.class);
-
-        intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
-        intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(intent);
-        //finish();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -202,16 +154,7 @@ public class Qdash extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar old_item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        /*if (id == R.id.action_settings) {
-            return true;
-        }
-        */
         return super.onOptionsItemSelected(item);
     }
 
@@ -227,7 +170,6 @@ public class Qdash extends AppCompatActivity
             startActivity(Swipe);
 
         } else if (id == R.id.nav_manage_sh) {
-
 
             this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
 
@@ -261,9 +203,6 @@ public class Qdash extends AppCompatActivity
 
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
-
-
-
 
     }
 }

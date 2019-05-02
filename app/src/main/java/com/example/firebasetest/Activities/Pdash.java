@@ -2,6 +2,7 @@ package com.example.firebasetest.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -14,91 +15,72 @@ import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Classes.Response;
 import com.example.firebasetest.Activities.Classes.SH;
-import com.example.firebasetest.Adapters.SHAdapter;
 import com.example.firebasetest.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 
-public class SHdash extends AppCompatActivity
+public class Pdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    private Button addBtn;
-
-    ListView mListView;
-    String ownerId;
-
-    //test
     ListView lv;
     FirebaseListAdapter adapter;
+    String index;
+    String cSHid;
+    String ownerId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_shdash);
+        setContentView(R.layout.activity_home2);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
+
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         ownerId = currentUser.getUid();
 
-        addBtn = findViewById(R.id.addBtn);
-
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(ownerId);
-
+        //index = getIntent().getExtras().getString("CurrentIndex");
+        //cSHid = getIntent().getExtras().getString("CurrentSHid");
 
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId);
+        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId).child(index).child("participants");
 
-        FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
-                    .setLayout(R.layout.sh_adapter_view_layout)
-                    .setLifecycleOwner(SHdash.this)
-                    .setQuery(query,SH.class)
-                    .build();
+        FirebaseListOptions<String> options = new FirebaseListOptions.Builder<String>()
+                .setLayout(R.layout.adapter_question_view)
+                .setLifecycleOwner(Pdash.this)
+                .setQuery(query,String.class)
+                .build();
 
-        adapter = new FirebaseListAdapter<SH>(options) {
+        adapter = new FirebaseListAdapter<String>(options) {
             @Override
-            protected void populateView(View v, SH model, int position) {
-                SH cSH = (SH) model;
-                String shTitle = cSH.getTitle();
-                String onGoingStatus;
-
-                if(cSH.checkOngoing()){
-                    onGoingStatus = "OnGoing";
-                }else{
-                    onGoingStatus = "Ended";
-                }
-
-                String numPeople =  cSH.participants.size() + " Participants";
-
+            protected void populateView(View v, String model, int position) {
                 TextView title = (TextView) v.findViewById(R.id.textView1);
-                TextView participants = (TextView) v.findViewById(R.id.textView2);
-                TextView ongoingStatus = (TextView) v.findViewById(R.id.textView3);
 
-                title.setText(shTitle);
-                participants.setText(onGoingStatus);
-                ongoingStatus.setText(numPeople);
+                title.setText(model);
 
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
@@ -110,71 +92,14 @@ public class SHdash extends AppCompatActivity
         lv.setAdapter(adapter);
 
 
-        //navi
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        updateNavHeader();
-
-        addBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), SHmake.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
-                //addSHList(ownerId);
-                finish();
-
-            }
-        });
-
-
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                Toast.makeText(SHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
-                prepareBundleAndFinish(""+index);
-
-            }
-        });
-
-
-
-
-    }
-
-    private void prepareBundleAndFinish( final String index) {
-
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(ownerId).child(index);
-
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                SH sh = dataSnapshot.getValue(SH.class);
-                Intent intent = new Intent(getApplicationContext(), SHedit.class);
-                intent.putExtra("CurrentSHid", sh.getId());
-                intent.putExtra("CurrentIndex", index);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);
-                finish();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
+            public void onItemClick(AdapterView<?> adapterView, View view, int qIndex, long l) {
+                Toast.makeText(Pdash.this, "Clicked "+ qIndex, Toast.LENGTH_SHORT).show();
             }
         });
 
     }
-
-
-
 
     @Override
     public void onBackPressed() {
@@ -196,7 +121,6 @@ public class SHdash extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -212,7 +136,6 @@ public class SHdash extends AppCompatActivity
             startActivity(Swipe);
 
         } else if (id == R.id.nav_manage_sh) {
-
 
             this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
 
@@ -246,11 +169,6 @@ public class SHdash extends AppCompatActivity
 
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
-
-    }
-
-    private void showMessage(String message) {
-        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
 
     }
 }

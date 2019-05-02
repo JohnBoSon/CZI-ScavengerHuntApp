@@ -20,4 +20,32 @@ public class Response {
         this.isImage = isImage;
         this.questionId = questionId;
     }
+
+    public String getReply() { return reply; }
+
+    public void setReply(String reply) { this.reply = reply; }
+
+    public String getId() { return id; }
+
+    public void setId(String id) { this.id = id; }
+
+    public String getReplierId() { return replierId; }
+
+    public void setReplierId(String replierId) { this.replierId = replierId; }
+
+    public boolean isImage() { return isImage; }
+
+    //public void setImage(boolean image) { isImage = image; }
+
+    public String getQuestionId() { return questionId; }
+
+    public void setQuestionId(String questionId) { this.questionId = questionId; }
+
+    public boolean isGraded() { return graded; }
+
+    public void setGraded(boolean graded) { this.graded = graded; }
+
+    public boolean isPass() { return pass; }
+
+    public void setPass(boolean pass) { this.pass = pass; }
 }

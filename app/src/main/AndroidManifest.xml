@@ -12,9 +12,45 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".Activities.Rcloud"
+            android:label="@string/title_activity_rcloud"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".Activities.Rcolumn"
+            android:label="@string/title_activity_rcolumn"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.Rpie"
+            android:label="@string/title_activity_rpie"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.SSHdash"
+            android:label="@string/title_activity_sshdash"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.Pdash"
+            android:label="@string/title_activity_pdash"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.SQview"
+            android:label="@string/title_activity_sqview"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.Rview"
+            android:label="@string/title_activity_rview"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.SQdash"
+            android:label="@string/title_activity_sqdash"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.Rdash"
+            android:label="@string/title_activity_rdash"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".Activities.Qview"
             android:label="@string/title_activity_qview"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Activities.SHview"
             android:label="@string/title_activity_shview"
@@ -61,7 +97,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".Activities.ManageSHActivity" />
-
         <activity android:name=".Activities.RegisterActivity" />
     </application>
 

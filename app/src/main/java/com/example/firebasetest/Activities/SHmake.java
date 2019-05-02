@@ -69,7 +69,6 @@ public class SHmake extends AppCompatActivity
     int shListSize = -9;
     boolean stopLoop = false;
 
-    private Bundle bundle;
 
 
     @Override
@@ -82,8 +81,6 @@ public class SHmake extends AppCompatActivity
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
-        bundle =  new Bundle();
-
 
         mDisplayDate = findViewById(R.id.dateTV);
         createBtn = findViewById(R.id.createBtn);
@@ -120,11 +117,7 @@ public class SHmake extends AppCompatActivity
                 else {
                     // everything is ok and all fields are filled now we can start creating user account
                     // CreateUserAccount method will try to create the user if the email is valid
-
                     createSH(endDate,shTitle);
-
-
-                    //bundle.putInt("SHIndex", shListSize);
 
                 }
 
@@ -186,12 +179,8 @@ public class SHmake extends AppCompatActivity
                     String index = shList.size()-1 + "";
                     intent.putExtra("CurrentIndex", index);
                     intent.putExtra("CurrentSHid", newSH.getId());
-
-
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-
                     startActivity(intent);
-
                     finish();
 
                 }else{
@@ -207,10 +196,7 @@ public class SHmake extends AppCompatActivity
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                     intent.putExtra("CurrentSHid", newSH.getId());
                     intent.putExtra("CurrentIndex", index);
-
-
                     startActivity(intent);
-
                     finish();
 
 

@@ -54,6 +54,7 @@ public class Qview extends AppCompatActivity
     String SHid;
     String index;
     String qindex;
+    String isNewQ;
 
     String replyChosen = "";
 
@@ -73,6 +74,7 @@ public class Qview extends AppCompatActivity
         SHid = getIntent().getExtras().getString("CurrentSHid");
         index = getIntent().getExtras().getString("CurrentIndex");
         qindex = getIntent().getExtras().getString("CurrentQIndex");
+        isNewQ = getIntent().getExtras().getString("isNewQ");
 
 
 
@@ -98,40 +100,48 @@ public class Qview extends AppCompatActivity
 
 
         //showMessage("owner" + ownerId + ", index" + index + ", iQ:" +getIntent().getExtras().getString("CurrentQIndex"));
-        myRef = database.getReference("SHList").child(ownerId).child(index).child("questions").child(getIntent().getExtras().getString("CurrentQIndex"));
+        myRef = database.getReference("SHList").child(ownerId).child(index).child("questions").child(qindex);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()) {
+                    Question q = dataSnapshot.getValue(Question.class);
 
-                //for now change when listView works
-                Question q = dataSnapshot.getValue(Question.class);
+                    if (q.getDescription().isEmpty()) {
+                        descET.setHint("Enter Description");
+                    } else {
+                        descET.setHint(q.getDescription());
+                    }
 
-                if(q.getDescription().isEmpty()) {
+                    if (q.getDescription().isEmpty()) {
+                        titleET.setHint("Enter Title");
+                    } else {
+                        titleET.setHint(q.getTitle());
+                    }
+
+                    if (q.getReplyType().equals("PHOTO")) {
+                        textTB.setTextOff("text");
+                        textTB.setChecked(false);
+                        photoTB.setChecked(true);
+                    }
+
+                    if (q.getReplyType().equals("TEXT")) {
+                        photoTB.setTextOff("photo");
+                        photoTB.setChecked(false);
+                        textTB.setChecked(true);
+                    }
+
+                    qnumtitleTV.setText("Question " + qindex);
+
+                }else{
                     descET.setHint("Enter Description");
-                }else{
-                    descET.setHint(q.getDescription());
-                }
-
-                if(q.getDescription().isEmpty()) {
                     titleET.setHint("Enter Title");
-                }else{
-                    titleET.setHint(q.getTitle());
-                }
-
-                if(q.getReplyType().equals("PHOTO")){
-                    textTB.setTextOff("text");
-                    textTB.setChecked(false);
-                    photoTB.setChecked(true);
-                }
-
-                if(q.getReplyType().equals("TEXT")){
-                    photoTB.setTextOff("photo");
                     photoTB.setChecked(false);
-                    textTB.setChecked(true);
-                }
+                    textTB.setChecked(false);
+                    qnumtitleTV.setText("Question " + qindex);
 
-                qnumtitleTV.setText("Question " + qindex);
+                }
 
 
             }

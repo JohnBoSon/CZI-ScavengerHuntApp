@@ -21,6 +21,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -85,6 +87,8 @@ public class UploadGallery extends AppCompatActivity {
                         public void onSuccess(Uri uri) {
                             // create post Object
                             Glide.with(imageView.getContext()).load(uri.toString()).into(imageView);
+                            FirebaseDatabase.getInstance().getReference("beta").child("imageTest").setValue(uri.toString());
+
                             Toast.makeText(UploadGallery.this, "Upload Done",Toast.LENGTH_LONG).show();
                             mProgressDialog.dismiss();
 

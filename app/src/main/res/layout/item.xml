@@ -22,7 +22,7 @@
 
 
         <ImageView
-            android:id="@+id/image"
+            android:id="@+id/imageV"
             android:layout_width="match_parent"
             android:layout_height="300dp"
             android:background="@android:color/holo_blue_bright"
@@ -31,7 +31,7 @@
             />
 
         <TextView
-            android:id="@+id/helloText"
+            android:id="@+id/textTV"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@android:color/transparent"
