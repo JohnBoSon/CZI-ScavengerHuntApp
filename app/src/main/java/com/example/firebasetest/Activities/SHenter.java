@@ -14,54 +14,62 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 public class SHenter extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
+    FirebaseDatabase database;
+    DatabaseReference myRef;
 
     private Button enterBtn;
+private EditText accessCode;
+    String userId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shenter);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
-
         enterBtn = findViewById(R.id.enterBtn);
+        userId = currentUser.getUid();
+        accessCode = findViewById(R.id.accessET);
 
-
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        updateNavHeader();
+        menuBarSetUp();
 
         enterBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), Qdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
-                finish();
 
+                if(accessCode.getText().toString().isEmpty()){
+                    showMessage("Enter an Access Code");
+                }else{
+                    findSH(accessCode.getText().toString());
+                }
             }
         });
+
+
 
 
     }
@@ -110,23 +118,12 @@ public class SHenter extends AppCompatActivity
             startActivity(Swipe);
 
         } else if (id == R.id.nav_manage_sh) {
-            //getSupportActionBar().setTitle("Settings");
-            //getSupportFragmentManager().beginTransaction().replace(R.id.container,new SettingsFragment()).commit();
-
-            //Intent manageSHActivity = new Intent(getApplicationContext(),SHdash.class);
-            //startActivity(manageSHActivity);
 
             this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
 
 
         }else if (id == R.id.nav_new_sh) {
-            //getSupportActionBar().setTitle("Settings");
-            //getSupportFragmentManager().beginTransaction().replace(R.id.container,new SettingsFragment()).commit();
 
-            //Intent BNaviTest = new Intent(getApplicationContext(),BNaviTest.class);
-            //startActivity(BNaviTest);
-
-            //transition activity without animation
             this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
 
 
@@ -148,15 +145,102 @@ public class SHenter extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
-
         TextView navUsername = headerView.findViewById(R.id.nav_username);
         TextView navUserMail = headerView.findViewById(R.id.nav_user_mail);
-
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
 
+    }
 
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+    }
 
+    private void menuBarSetUp(){
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
+    }
+
+    private void findSH(String eSHid){
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SH").child(eSHid);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    SH sh = dataSnapshot.getValue(SH.class);
+                    if(sh.checkOngoing()){
+                        addSHList(userId,sh);
+                    }else{
+                        showMessage("This Scavenger Hunt has Ended");
+                    }
+                } else {
+                    showMessage("Access Code is Not Valid");
+                }
+            }
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.out.println("The read failed: " + databaseError.getCode());
+                }
+            });
+        }
+
+    private void prepareBundleAndFinish(Class nextView, String index, String SHid) {
+        Intent intent = new Intent(getApplicationContext(), nextView);
+        intent.putExtra("CurrentSHid", SHid);
+        intent.putExtra("CurrentIndex", index);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
+    }
+
+    private void addSHList( final String userId, final SH jSH) {
+
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SSHList").child(userId);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    final ArrayList shList = (ArrayList<SH>) dataSnapshot.getValue();
+                    boolean exist = false;
+                    int eindex = 0;
+                    for(int i = 0 ; i < shList.size() ; i++){
+                        if(jSH.getId() == ((SH)shList.get(i)).getId()){
+                            exist = true;
+                            eindex = i;
+                        }
+                    }
+                    if(!exist){
+                        shList.add(jSH);
+                        database = FirebaseDatabase.getInstance();
+                        database.getReference("SSHList").child(userId).setValue(shList);
+                        prepareBundleAndFinish(SQdash.class,"" + shList.size(), jSH.getId());
+                    }else{
+                        prepareBundleAndFinish(SQdash.class, "" + eindex, jSH.getId());
+                    }
+                }else{
+                    final ArrayList shList = new ArrayList<SH>();
+                    shList.add(jSH);
+                    myRef = database.getReference("SSHList").child(userId);
+                    myRef.setValue(shList);
+                    prepareBundleAndFinish(SQdash.class, "0", jSH.getId());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
 
     }
 }

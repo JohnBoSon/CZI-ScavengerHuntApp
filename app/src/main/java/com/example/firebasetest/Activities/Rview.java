@@ -46,7 +46,6 @@ public class Rview extends AppCompatActivity
     ToggleButton acceptTB;
     ToggleButton declineTB;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,10 +57,7 @@ public class Rview extends AppCompatActivity
         ownerId = currentUser.getUid();
 
         setUpView();
-
         menuBarSetUp();
-
-
     }
 
     private void setUpView(){
@@ -162,7 +158,6 @@ public class Rview extends AppCompatActivity
 
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
-
     }
 
     private void menuBarSetUp(){

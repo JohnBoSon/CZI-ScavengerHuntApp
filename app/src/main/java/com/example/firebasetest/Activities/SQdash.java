@@ -21,107 +21,189 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.firebasetest.Activities.Classes.Question;
 import com.example.firebasetest.Activities.Classes.Response;
+import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 public class SQdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    FirebaseAuth mAuth;
-    FirebaseUser currentUser ;
-    FirebaseDatabase database;
-    DatabaseReference myRef;
 
-    String ownerId;
-    String index;
+        FirebaseAuth mAuth;
+        FirebaseUser currentUser ;
+        FirebaseDatabase database;
+        DatabaseReference myRef;
+
+        String userId;
+
+        ListView lv;
+        FirebaseListAdapter adapter;
+        Button submitBtn;
+
+        String index;
+        String cSHid;
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_sqdash);
+
+            mAuth = FirebaseAuth.getInstance();
+            currentUser = mAuth.getCurrentUser();
+            userId = currentUser.getUid();
+
+            index = getIntent().getExtras().getString("CurrentIndex");
+            cSHid = getIntent().getExtras().getString("CurrentSHid");
+
+            database = FirebaseDatabase.getInstance();
+            myRef = database.getReference("SH").child(userId);
+
+            lv = (ListView) findViewById(R.id.listView);
+            submitBtn = findViewById(R.id.submitBtn);
 
 
-    //test
-    ListView lv;
-    Button submitBtn;
-    FirebaseListAdapter adapter;
+            setupListView();
+            menuBarSetUp();
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home2);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+            lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int qIndex, long l) {
+                    prepareBundleAndFinish(qIndex + "");
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        updateNavHeader();
+                }
+            });
 
-        mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser();
-        ownerId = currentUser.getUid();
+            submitBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //addQPrepareBundleAndFinish();
+                }
+            });
+
+        }
+        /*
+
+        private void submitSH(){
+            database = FirebaseDatabase.getInstance();
+            myRef = database.getReference("SSHList").child(userId).child(index);
+
+            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if(dataSnapshot.exists()){
+                        final ArrayList r = (ArrayList<Response>) dataSnapshot.getValue();
+
+                        //SH cSH = dataSnapshot.getValue(SH.class);
+                        addResponseToMaster(r);
+                        database.getReference("SHList").child(cSH.getOwnerId()).setValue(shList);
+
+
+                    }else{
+
+                        showMessage("There are no Responses to Submit");
+
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.out.println("The read failed: " + databaseError.getCode());
+                }
+            });
+
+        }
+
+    private void addResponseToMaster(ArrayList<Response> rList){
         database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SHList").child(userId).child(index);
 
-        //index = getIntent().getExtras().getString("CurrentIndex");
-        //cSHid = getIntent().getExtras().getString("CurrentSHid");
-
-        lv = (ListView) findViewById(R.id.listView);
-        submitBtn = (Button) findViewById(R.id.submitBtn);
-
-
-
-
-        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId).child(index).child("questions");
-
-        FirebaseListOptions<Question> options = new FirebaseListOptions.Builder<Question>()
-                .setLayout(R.layout.sh_adapter_view_layout)
-                .setLifecycleOwner(SQdash.this)
-                .setQuery(query, Question.class)
-                .build();
-
-        adapter = new FirebaseListAdapter<Question>(options) {
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            protected void populateView(View v, Question model, int position) {
-                Question cQuestion = (Question) model;
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    SH cSH = dataSnapshot.getValue(SH.class);
 
-                TextView title = (TextView) v.findViewById(R.id.textView1);
-                TextView participants = (TextView) v.findViewById(R.id.textView2);
-                TextView ongoingStatus = (TextView) v.findViewById(R.id.textView3);
+                    database.getReference("SHList").child(cSH.getOwnerId()).setValue(shList);
 
-                title.setText("");
-                participants.setText("");
-                ongoingStatus.setText("");
 
-                Animation animation = null;
-                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                v.startAnimation(animation);
+                }else{
 
+                    showMessage("There are no Responses to Submit");
+
+
+                }
             }
-        };
 
-        lv.setAdapter(adapter);
-
-
-
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                Toast.makeText(SQdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
-
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
             }
         });
 
-        submitBtn.setOnClickListener(new View.OnClickListener() {
+    }
+*/
+        private void setupListView(){
+            Query query = FirebaseDatabase.getInstance().getReference("SH").child(cSHid).child("questions");
+            FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
+                    .setLayout(R.layout.adapter_question_view)
+                    .setLifecycleOwner(SQdash.this)
+                    .setQuery(query,SH.class)
+                    .build();
+
+            adapter = new FirebaseListAdapter<SH>(options) {
+                @Override
+                protected void populateView(View v, SH model, int position) {
+                    TextView title = (TextView) v.findViewById(R.id.textView1);
+
+                    title.setText("Question " + position);
+
+                    Animation animation = null;
+                    animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                    v.startAnimation(animation);
+
+                }
+            };
+
+            lv.setAdapter(adapter);
+        }
+
+    private void prepareBundleAndFinish(final String qIndex){
+
+
+        myRef = database.getReference("SH").child(cSHid).child("questions").child(qIndex);
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onClick(View view) {
-                //
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Question q = dataSnapshot.getValue(Question.class);
+                Intent intent = new Intent(getApplicationContext(), SQview.class);
+                intent.putExtra("CurrentQIndex", qIndex);
+                intent.putExtra("CurrentSHid", cSHid);
+                intent.putExtra("CurrentIndex", index);
+                intent.putExtra("CurrentQid", q.getId());
+                intent.putExtra("CurrentQType", q.getReplyType());
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
             }
         });
 
@@ -196,6 +278,24 @@ public class SQdash extends AppCompatActivity
 
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
+
+    }
+
+    private void menuBarSetUp(){
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
+    }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
 
     }
 }

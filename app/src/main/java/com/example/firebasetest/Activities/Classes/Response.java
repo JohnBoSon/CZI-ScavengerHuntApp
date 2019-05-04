@@ -23,6 +23,11 @@ public class Response {
         this.note = "";
     }
 
+
+    public String getNote() { return note; }
+
+    public void setNote(String reply) { this.note = reply; }
+
     public String getReply() { return reply; }
 
     public void setReply(String reply) { this.reply = reply; }

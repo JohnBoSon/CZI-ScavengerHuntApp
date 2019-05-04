@@ -27,9 +27,12 @@ import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 public class SSHdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -37,7 +40,7 @@ public class SSHdash extends AppCompatActivity
     FirebaseUser currentUser ;
     FirebaseDatabase database;
     DatabaseReference myRef;
-    String ownerId;
+    String userId;
 
     //test
     ListView lv;
@@ -52,14 +55,14 @@ public class SSHdash extends AppCompatActivity
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
-        ownerId = currentUser.getUid();
+        userId = currentUser.getUid();
 
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(ownerId);
+        myRef = database.getReference("SSHList").child(userId);
 
 
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId);
+        Query query = FirebaseDatabase.getInstance().getReference().child("SSHList").child(userId);
 
         FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
                 .setLayout(R.layout.sh_adapter_view_layout)
@@ -126,12 +129,37 @@ public class SSHdash extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
                 Toast.makeText(SSHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
-
+                prepareBundleAndFinish(index+"");
             }
         });
 
 
 
+
+    }
+
+    private void prepareBundleAndFinish( final String index) {
+
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SSHList").child(userId).child(index);
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+                Intent intent = new Intent(getApplicationContext(), SQdash.class);
+                intent.putExtra("CurrentSHid", sh.getId());
+                intent.putExtra("CurrentIndex", index);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
 
     }
 

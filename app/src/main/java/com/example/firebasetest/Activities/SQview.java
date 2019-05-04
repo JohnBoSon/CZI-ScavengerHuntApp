@@ -1,7 +1,10 @@
 package com.example.firebasetest.Activities;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.View;
@@ -13,49 +16,285 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.example.firebasetest.Activities.Beta.UploadGallery;
+import com.example.firebasetest.Activities.Classes.Question;
+import com.example.firebasetest.Activities.Classes.Response;
 import com.example.firebasetest.R;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.util.ArrayList;
 
 public class SQview extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     FirebaseAuth mAuth;
-    FirebaseUser currentUser ;
+    FirebaseUser currentUser;
+    FirebaseDatabase database;
+    DatabaseReference myRef;
+
+    private static final int GALLERY_INTENT = 2;
+    ProgressDialog mProgressDialog;
+    private StorageReference storage;
+
+
+    Button saveBtn;
+    Button uploadBtn;
+    EditText replyET;
+    ImageView imageView;
+    TextView questionTV;
+    TextView titleTV;
+    TextView noteTV;
+
+    String index;
+    String cSHid;
+    String qId;
+    String qIndex;
+    String userId;
+    String qType;
+    String cUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home2);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_sqview);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        userId = currentUser.getUid();
+        database = FirebaseDatabase.getInstance();
 
+
+        index = getIntent().getExtras().getString("CurrentIndex");
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
+        qIndex = getIntent().getExtras().getString("CurrentQIndex");
+        qType = getIntent().getExtras().getString("CurrentQType");
+        qId = getIntent().getExtras().getString("CurrentQid");
+
+        saveBtn = findViewById(R.id.saveBtn);
+        uploadBtn = findViewById(R.id.uploadBtn);
+        replyET = findViewById(R.id.replyET);
+        imageView = findViewById(R.id.imageView);
+        questionTV = findViewById(R.id.questionTV);
+        titleTV = findViewById(R.id.titleTV);
+        noteTV = findViewById(R.id.noteTV);
+
+        mProgressDialog = new ProgressDialog(this);
+        storage = FirebaseStorage.getInstance().getReference();
+
+
+        updateViewQ();
+        updateViewR();
+
+        uploadBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent, GALLERY_INTENT);
+
+            }
+        });
+
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (qType.equals("PHOTO")) {
+                    if (!cUri.isEmpty()) {
+                        setupSave(qType.equals("PHOTO"));
+
+                    } else {
+                        showMessage("Upload a Photo Before Saving");
+                    }
+                } else {
+                    if (!replyET.getText().toString().isEmpty()) {
+                        setupSave(qType.equals("PHOTO"));
+                    } else {
+                        showMessage("Enter all fields");
+                    }
+                }
+            }
+        });
+
+        menuBarSetUp();
+    }
+
+    private void setupSave(final boolean isImage){
+        myRef = database.getReference("SSHList").child(userId).child(index).child("questions");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    final ArrayList qList = (ArrayList<Question>) dataSnapshot.getValue();
+                    saveReply(isImage, qList.size());
+
+                } else {
+                    saveReply(isImage, 0);
+                }
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+    private void saveReply(final boolean isImage, final int qListSize) {
+        myRef = database.getReference("SSHList").child(userId).child(index).child("responses");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    final ArrayList rList = (ArrayList<Response>) dataSnapshot.getValue();
+                    Response r;
+                    String id = database.getReference("SSHList").child(userId).child(index).child("responses").child(qIndex).child("id").push().getKey();
+
+
+                    if (isImage) {
+                        r = new Response(cUri, id, userId, isImage, qId);
+                    } else {
+                        r = new Response(replyET.getText().toString(), id, userId, isImage, qId);
+                    }
+                    //showMessage(""+qId.equals(((Response)rList.get(0)).getQuestionId()));
+
+                    rList.set(Integer.parseInt(qIndex), r);
+
+
+                    database.getReference("SSHList").child(userId).child(index).child("responses").setValue(rList);
+
+                    //showMessage("Saved");
+
+                } else {
+                    ArrayList<Response> rList = new ArrayList<>();
+
+                    for(int i = 0 ; i < qListSize; i++){
+                        Response t = new Response("N/A", "N/A", "N/A", false, "N/A");
+                        rList.add(t);
+                    }
+
+                    Response r;
+
+                    String id = database.getReference("SSHList").child(userId).child(index).child("responses").child(qIndex).child("id").push().getKey();
+                    if (isImage) {
+                        r = new Response(cUri, id, userId, isImage, qId);
+                    } else {
+                        r = new Response(replyET.getText().toString(), id, userId, isImage, qId);
+                    }
+                    rList.set(Integer.parseInt(qIndex), r);
+                    database.getReference("SSHList").child(userId).child(index).child("responses").setValue(rList);
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+    private void updateViewQ() {
+        myRef = database.getReference("SH").child(cSHid).child("questions").child(qIndex);
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Question q = dataSnapshot.getValue(Question.class);
+                questionTV.setText(q.getDescription());
+                if (q.getReplyType().equals("TEXT")) {
+                    uploadBtn.setVisibility(View.GONE);
+                }else{
+                    replyET.setVisibility(View.GONE);
+                }
+
+                titleTV.setText(q.getTitle());
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+    private void updateViewR() {
+        myRef = database.getReference("SSHList").child(userId).child(index).child("responses").child(qIndex);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    Response r = dataSnapshot.getValue(Response.class);
+
+                    if(qType.equals("TEXT")){
+                        if (r.getReply().equals("N/A")) {
+                            replyET.setHint("Enter Your Answer Here");
+                        } else {
+                            replyET.setHint(r.getReply());
+                        }
+                        imageView.setVisibility(View.GONE);
+                    }else{
+                        if (qType.equals("PHOTO")&& !r.getQuestionId().equals("N/A")) {
+                            Glide.with(imageView.getContext()).load(r.getReply()).into(imageView);
+                        }
+                    }
+
+                    if (!(r.getNote().equals("N/A"))) {
+                        noteTV.setText(r.getNote());
+                    } else {
+                        noteTV.setVisibility(View.GONE);
+                    }
+
+                }else{
+                    showMessage("Error with Response List");
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+    private void menuBarSetUp() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
         updateNavHeader();
-
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        Intent intent = new Intent(getApplicationContext(), SQdash.class);
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentIndex", index);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -87,15 +326,15 @@ public class SQview extends AppCompatActivity
             this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
 
 
-        }else if (id == R.id.nav_new_sh) {
+        } else if (id == R.id.nav_new_sh) {
 
             this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
 
 
-        }else if (id == R.id.nav_signout) {
+        } else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
-            Intent loginActivity = new Intent(getApplicationContext(),LoginActivity.class);
+            Intent loginActivity = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(loginActivity);
             finish();
 
@@ -118,4 +357,52 @@ public class SQview extends AppCompatActivity
         navUsername.setText(currentUser.getDisplayName());
 
     }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK) {
+            mProgressDialog.setMessage("Uploading");
+            mProgressDialog.show();
+
+            Uri uri = data.getData();
+
+            cUri = uri.toString();
+
+            //final StorageReference filepath = storage.child("Photos").child(uri.getLastPathSegment());
+            final StorageReference filepath = storage.child("Photos").child(userId).child(qId);
+
+            filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                    filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            // create post Object
+                            Glide.with(imageView.getContext()).load(cUri).into(imageView);
+                            //FirebaseDatabase.getInstance().getReference("beta").child("imageTest").setValue(uri.toString());
+                            Toast.makeText(SQview.this, "Upload Done",Toast.LENGTH_LONG).show();
+                            mProgressDialog.dismiss();
+
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            // something goes wrong uploading picture
+
+
+                        }
+                    });
+
+
+                }
+            });
+        }
+    }
+
 }

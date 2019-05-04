@@ -54,9 +54,7 @@ public class UploadGallery extends AppCompatActivity {
             @Override
             public void onClick(View view){
                 Intent intent = new Intent(Intent.ACTION_PICK);
-
                 intent.setType("image/*");
-
                 startActivityForResult(intent, GALLERY_INTENT);
             }
         });
@@ -101,6 +99,14 @@ public class UploadGallery extends AppCompatActivity {
 
                         }
                     });
+
+
+                }
+            });
+        }
+    }
+}
+
 /*
             filepath.putFile(uri).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
                 @Override
@@ -131,10 +137,3 @@ public class UploadGallery extends AppCompatActivity {
 
             });
 */
-
-                }
-            });
-        }
-    }
-}
-

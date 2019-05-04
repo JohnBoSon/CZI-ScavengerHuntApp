@@ -203,20 +203,11 @@ public class Home extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            //getSupportActionBar().setTitle("Home");
-            //getSupportFragmentManager().beginTransaction().replace(R.id.container,new HomeFragment()).commit();
-
-            //Intent viewUpload = new Intent(getApplicationContext(), UploadGallery.class);
-            //startActivity(viewUpload);
 
 
-            //getSupportActionBar().setTitle("Profile");
-            //getSupportFragmentManager().beginTransaction().replace(R.id.container,new ProfileFragment()).commit();
+            //Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
+            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
 
-            //Intent manageSH = new Intent(getApplicationContext(),ManageSHActivity.class);
-            //startActivity(manageSH);
-
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
             startActivity(Swipe);
 
         } else if (id == R.id.nav_manage_sh) {
