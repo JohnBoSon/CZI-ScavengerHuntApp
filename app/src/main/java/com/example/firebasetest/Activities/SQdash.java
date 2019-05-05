@@ -34,6 +34,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
@@ -89,14 +90,13 @@ public class SQdash extends AppCompatActivity
             submitBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    //addQPrepareBundleAndFinish();
+                    checkEndDateThenSubmitt();
                 }
             });
 
         }
-        /*
 
-        private void submitSH(){
+        private void checkEndDateThenSubmitt(){
             database = FirebaseDatabase.getInstance();
             myRef = database.getReference("SSHList").child(userId).child(index);
 
@@ -104,18 +104,45 @@ public class SQdash extends AppCompatActivity
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if(dataSnapshot.exists()){
-                        final ArrayList r = (ArrayList<Response>) dataSnapshot.getValue();
+                        SH checkingSH = dataSnapshot.getValue(SH.class);
+                        if(checkingSH.checkOngoing()){
+                            submitSH();
+                        }else{
+                            showMessage("Deadline Has Passed");
+                        }
+                    }
+                }
 
-                        //SH cSH = dataSnapshot.getValue(SH.class);
-                        addResponseToMaster(r);
-                        database.getReference("SHList").child(cSH.getOwnerId()).setValue(shList);
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.out.println("The read failed: " + databaseError.getCode());
+                }
+            });
+        }
 
 
+        private void submitSH(){
+            database = FirebaseDatabase.getInstance();
+            myRef = database.getReference("SSHList").child(userId).child(index).child("responses");
+
+            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if(dataSnapshot.exists()){
+                        GenericTypeIndicator<ArrayList<Response>> t = new GenericTypeIndicator<ArrayList<Response>>() {};
+                        ArrayList<Response> rList = dataSnapshot.getValue(t);
+                        ArrayList<Response> crList = new ArrayList<>();
+
+                        for(int i = 0 ; i < rList.size(); i++){
+                            if(!rList.get(i).getQuestionId().equals("N/A")){
+                                crList.add(rList.get(i));
+                            }
+                        }
+
+
+                        sendResponseToTeacher(crList);
                     }else{
-
-                        showMessage("There are no Responses to Submit");
-
-
+                        showMessage("There are no Responses to Send");
                     }
                 }
 
@@ -127,25 +154,65 @@ public class SQdash extends AppCompatActivity
 
         }
 
-    private void addResponseToMaster(ArrayList<Response> rList){
+    private void sendResponseToTeacher(final ArrayList<Response> crList){
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(userId).child(index);
+        myRef = database.getReference("SH").child(cSHid).child("responses");
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
-                    SH cSH = dataSnapshot.getValue(SH.class);
+                    GenericTypeIndicator<ArrayList<Response>> t = new GenericTypeIndicator<ArrayList<Response>>() {};
+                    ArrayList<Response> rList = dataSnapshot.getValue(t);
 
-                    database.getReference("SHList").child(cSH.getOwnerId()).setValue(shList);
 
+                    boolean clone = false;
+                    int cloneIndex = 0;
 
+                    for(int i = 0 ; i < crList.size(); i++){
+                        for(int j = 0 ; j < rList.size(); j++){
+                            if(rList.get(j).getId().equals(crList.get(i).getId())){
+                                cloneIndex = j;
+                                clone = true;
+                            }
+                        }
+
+                        if(clone){
+                            rList.set(cloneIndex,crList.get(i));
+                        }else{
+                            rList.add(crList.get(i));
+                        }
+                        clone = false;
+                    }
+
+                    database.getReference("SH").child(cSHid).child("responses").setValue(rList);
+                    showMessage("Responses Sent");
                 }else{
+                    ArrayList<Response> rList = new ArrayList<>();
 
-                    showMessage("There are no Responses to Submit");
+                    boolean clone = false;
+                    int cloneIndex = 0;
 
+                    for(int i = 0 ; i < crList.size(); i++){
+                        for(int j = 0 ; j < rList.size(); j++){
+                            if(rList.get(j).getId().equals(crList.get(i).getId())){
+                                cloneIndex = j;
+                                clone = true;
+                            }
+                        }
 
+                        if(clone){
+                            rList.set(cloneIndex,crList.get(i));
+                        }else{
+                            rList.add(crList.get(i));
+                        }
+                        clone = false;
+                    }
+
+                    database.getReference("SH").child(cSHid).child("responses").setValue(rList);
+                    showMessage("Responses Sent");
                 }
+
             }
 
             @Override
@@ -155,7 +222,8 @@ public class SQdash extends AppCompatActivity
         });
 
     }
-*/
+
+
         private void setupListView(){
             Query query = FirebaseDatabase.getInstance().getReference("SH").child(cSHid).child("questions");
             FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()

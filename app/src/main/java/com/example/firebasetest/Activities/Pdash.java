@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.example.firebasetest.Activities.Classes.Response;
 import com.example.firebasetest.Activities.Classes.SH;
+import com.example.firebasetest.Activities.Classes.User;
 import com.example.firebasetest.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
@@ -63,25 +64,23 @@ public class Pdash extends AppCompatActivity
         currentUser = mAuth.getCurrentUser();
         ownerId = currentUser.getUid();
 
-        //index = getIntent().getExtras().getString("CurrentIndex");
-        //cSHid = getIntent().getExtras().getString("CurrentSHid");
+        index = getIntent().getExtras().getString("CurrentIndex");
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
 
         lv = (ListView) findViewById(R.id.listView);
         Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId).child(index).child("participants");
 
-        FirebaseListOptions<String> options = new FirebaseListOptions.Builder<String>()
+        FirebaseListOptions<User> options = new FirebaseListOptions.Builder<User>()
                 .setLayout(R.layout.adapter_question_view)
                 .setLifecycleOwner(Pdash.this)
-                .setQuery(query,String.class)
+                .setQuery(query,User.class)
                 .build();
 
-        adapter = new FirebaseListAdapter<String>(options) {
+        adapter = new FirebaseListAdapter<User>(options) {
             @Override
-            protected void populateView(View v, String model, int position) {
+            protected void populateView(View v, User model, int position) {
                 TextView title = (TextView) v.findViewById(R.id.textView1);
-
-                title.setText(model);
-
+                title.setText(model.getName());
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
                 v.startAnimation(animation);

@@ -35,6 +35,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -97,7 +98,6 @@ public class SQview extends AppCompatActivity
 
         mProgressDialog = new ProgressDialog(this);
         storage = FirebaseStorage.getInstance().getReference();
-
 
         updateViewQ();
         updateViewR();
@@ -163,9 +163,15 @@ public class SQview extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    final ArrayList rList = (ArrayList<Response>) dataSnapshot.getValue();
-                    Response r;
-                    String id = database.getReference("SSHList").child(userId).child(index).child("responses").child(qIndex).child("id").push().getKey();
+                    GenericTypeIndicator<ArrayList<Response>> t = new GenericTypeIndicator<ArrayList<Response>>() {};
+                    ArrayList<Response> rList = dataSnapshot.getValue(t);                    Response r;
+                    String id;
+
+                    if(rList.get(Integer.parseInt(qIndex)).getId().equals("N/A")){
+                        id = database.getReference("SSHList").child(userId).child(index).child("responses").child(qIndex).child("id").push().getKey();
+                    }else{
+                        id = rList.get(Integer.parseInt(qIndex)).getId();
+                    }
 
 
                     if (isImage) {
@@ -180,7 +186,7 @@ public class SQview extends AppCompatActivity
 
                     database.getReference("SSHList").child(userId).child(index).child("responses").setValue(rList);
 
-                    //showMessage("Saved");
+                    showMessage("Saved");
 
                 } else {
                     ArrayList<Response> rList = new ArrayList<>();
@@ -264,7 +270,14 @@ public class SQview extends AppCompatActivity
                     }
 
                 }else{
-                    showMessage("Error with Response List");
+                    if(qType.equals("TEXT")){
+                        replyET.setHint("Enter Your Answer Here");
+                        imageView.setVisibility(View.GONE);
+                    }
+
+                    noteTV.setVisibility(View.GONE);
+
+                    //showMessage("Error with Response List");
                 }
             }
             @Override

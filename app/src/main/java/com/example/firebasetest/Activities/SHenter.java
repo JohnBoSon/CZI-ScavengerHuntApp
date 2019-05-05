@@ -18,7 +18,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Classes.Response;
 import com.example.firebasetest.Activities.Classes.SH;
+import com.example.firebasetest.Activities.Classes.User;
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -26,6 +28,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -64,13 +67,11 @@ private EditText accessCode;
                 if(accessCode.getText().toString().isEmpty()){
                     showMessage("Enter an Access Code");
                 }else{
-                    findSH(accessCode.getText().toString());
+                   //findSH(accessCode.getText().toString());
+                    findSH("-Le8Xy4osjTDxxJfEQnV");
                 }
             }
         });
-
-
-
 
     }
 
@@ -169,22 +170,47 @@ private EditText accessCode;
         updateNavHeader();
     }
 
-    private void findSH(String eSHid){
+    private void findSH(final String eSHid){
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("SH").child(eSHid);
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
+
+
                     SH sh = dataSnapshot.getValue(SH.class);
+
+
                     if(sh.checkOngoing()){
-                        addSHList(userId,sh);
+                        boolean exist = false;
+
+                        for(int i = 0 ; i < sh.participants.size() ; i++){
+                            if(sh.participants.get(i).getName().equals(currentUser.getDisplayName())){
+                                exist = true;
+                                showMessage("exists");
+                            }
+                        }
+
+                        if(!exist){
+                            User u = new User(currentUser.getUid(), currentUser.getDisplayName());
+                            sh.participants.add(u);
+                            database.getReference("SHP").child(eSHid).child(userId).setValue(currentUser.getDisplayName());
+                            database.getReference("SH").child(eSHid).setValue(sh);
+                            addSHList(userId,sh);
+
+                        }else{
+                            showMessage("You are Already in this Scavenger Hunt");
+                        }
+
                     }else{
                         showMessage("This Scavenger Hunt has Ended");
                     }
                 } else {
                     showMessage("Access Code is Not Valid");
+
                 }
+
             }
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
@@ -202,6 +228,7 @@ private EditText accessCode;
         finish();
     }
 
+
     private void addSHList( final String userId, final SH jSH) {
 
         database = FirebaseDatabase.getInstance();
@@ -210,11 +237,12 @@ private EditText accessCode;
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
-                    final ArrayList shList = (ArrayList<SH>) dataSnapshot.getValue();
+                    GenericTypeIndicator<ArrayList<SH>> t = new GenericTypeIndicator<ArrayList<SH>>() {};
+                    final ArrayList shList = (ArrayList<SH>) dataSnapshot.getValue(t);
                     boolean exist = false;
                     int eindex = 0;
                     for(int i = 0 ; i < shList.size() ; i++){
-                        if(jSH.getId() == ((SH)shList.get(i)).getId()){
+                        if(jSH.getId().equals(((SH)shList.get(i)).getId())){
                             exist = true;
                             eindex = i;
                         }
@@ -223,16 +251,21 @@ private EditText accessCode;
                         shList.add(jSH);
                         database = FirebaseDatabase.getInstance();
                         database.getReference("SSHList").child(userId).setValue(shList);
-                        prepareBundleAndFinish(SQdash.class,"" + shList.size(), jSH.getId());
+
+                        prepareBundleAndFinish(SQdash.class, "" + shList.size(), jSH.getId());
+
                     }else{
-                        prepareBundleAndFinish(SQdash.class, "" + eindex, jSH.getId());
+                        showMessage("You are Already in this Scavenger Hunt");
+                        //prepareBundleAndFinish(SQdash.class, "" + eindex, jSH.getId());
                     }
                 }else{
                     final ArrayList shList = new ArrayList<SH>();
                     shList.add(jSH);
                     myRef = database.getReference("SSHList").child(userId);
                     myRef.setValue(shList);
-                    prepareBundleAndFinish(SQdash.class, "0", jSH.getId());
+
+                    prepareBundleAndFinish(SQdash.class, "" + 0, jSH.getId());
+
                 }
             }
 

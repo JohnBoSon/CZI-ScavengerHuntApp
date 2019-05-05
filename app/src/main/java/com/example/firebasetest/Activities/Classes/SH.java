@@ -1,4 +1,6 @@
 package com.example.firebasetest.Activities.Classes;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,7 +22,7 @@ public class SH {
 
     public ArrayList<Response> responses =new ArrayList<>();
     public ArrayList<Question> questions =new ArrayList<>();
-    public ArrayList<String> participants =new ArrayList<>();
+    public ArrayList<User> participants =new ArrayList<>();
 
     public SH() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)

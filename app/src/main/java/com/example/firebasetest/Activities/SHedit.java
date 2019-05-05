@@ -197,7 +197,7 @@ public class SHedit extends AppCompatActivity
         resultsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                prepareBundleAndFinish(Rdash.class);
+                prepareBundleAndFinish(Pdash.class);
             }
         });
 
