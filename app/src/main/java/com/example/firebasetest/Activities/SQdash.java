@@ -25,6 +25,7 @@ import com.bumptech.glide.Glide;
 import com.example.firebasetest.Activities.Classes.Question;
 import com.example.firebasetest.Activities.Classes.Response;
 import com.example.firebasetest.Activities.Classes.SH;
+import com.example.firebasetest.Activities.Classes.User;
 import com.example.firebasetest.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
@@ -75,9 +76,10 @@ public class SQdash extends AppCompatActivity
             lv = (ListView) findViewById(R.id.listView);
             submitBtn = findViewById(R.id.submitBtn);
 
-
+            updateQuestions();
             setupListView();
             menuBarSetUp();
+
 
             lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
                 @Override
@@ -95,6 +97,74 @@ public class SQdash extends AppCompatActivity
             });
 
         }
+
+        private void updateQuestions(){
+            database = FirebaseDatabase.getInstance();
+            myRef = database.getReference("SH").child(cSHid);
+
+            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    SH sh = dataSnapshot.getValue(SH.class);
+
+                    ArrayList<Question> qList = sh.questions;
+                    database.getReference("SSHList").child(userId).child(index).child("questions").setValue(qList);
+                    compareQnR();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.out.println("The read failed: " + databaseError.getCode());
+                }
+            });
+        }
+
+        private void compareQnR(){
+            database = FirebaseDatabase.getInstance();
+            myRef = database.getReference("SSHList").child(userId).child(index);
+
+            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    SH sh = dataSnapshot.getValue(SH.class);
+
+                    int pIndex = -1;
+                    for(int i = 0 ; i< sh.participants.size();i++){
+                        if(sh.participants.get(i).getId().equals(userId)){
+                            pIndex = i;
+                        }
+                    }
+
+                    if(pIndex == -1){
+                        //user not found in particpants
+                    }else {
+
+                        Response match = new Response("N/A", "N/A", "N/A", false, "N/A");
+                        ArrayList<Response> nrList = new ArrayList<>();
+
+                        for(int n = 0 ; n < sh.questions.size(); n++){
+                            for(int i =0; i < sh.participants.get(pIndex).responses.size(); i++){
+                                if(sh.participants.get(pIndex).responses.get(i).getQuestionId().equals(sh.questions.get(n).getId())){
+                                    match = sh.participants.get(pIndex).responses.get(i);
+                                }
+                            }
+                            nrList.add(match);
+                            match = new Response("N/A", "N/A", "N/A", false, "N/A");
+                        }
+                        database.getReference("SSHList").child(userId).child(index).child("participants").child(""+pIndex).child("responses").setValue(nrList);
+
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.out.println("The read failed: " + databaseError.getCode());
+                }
+            });
+        }
+
+
 
         private void checkEndDateThenSubmitt(){
             database = FirebaseDatabase.getInstance();
@@ -123,27 +193,38 @@ public class SQdash extends AppCompatActivity
 
         private void submitSH(){
             database = FirebaseDatabase.getInstance();
-            myRef = database.getReference("SSHList").child(userId).child(index).child("responses");
+            myRef = database.getReference("SSHList").child(userId).child(index).child("participants");
 
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    if(dataSnapshot.exists()){
-                        GenericTypeIndicator<ArrayList<Response>> t = new GenericTypeIndicator<ArrayList<Response>>() {};
-                        ArrayList<Response> rList = dataSnapshot.getValue(t);
-                        ArrayList<Response> crList = new ArrayList<>();
-
-                        for(int i = 0 ; i < rList.size(); i++){
-                            if(!rList.get(i).getQuestionId().equals("N/A")){
-                                crList.add(rList.get(i));
-                            }
+                    GenericTypeIndicator<ArrayList<User>> t = new GenericTypeIndicator<ArrayList<User>>() {};
+                    ArrayList<User> pList = dataSnapshot.getValue(t);
+                    int pIndex = -1;
+                    for(int i = 0 ; i< pList.size();i++){
+                        if(pList.get(i).getId().equals(userId)){
+                            pIndex = i;
                         }
-
-
-                        sendResponseToTeacher(crList);
-                    }else{
-                        showMessage("There are no Responses to Send");
                     }
+
+                    if(pIndex == -1){
+                        //user not found in particpants
+                    }else{
+                        if (!pList.get(pIndex).responses.isEmpty()) {
+                            ArrayList<Response> rList = pList.get(pIndex).responses;
+                            ArrayList<Response> crList = new ArrayList<>();
+
+                            for(int i = 0 ; i < rList.size(); i++){
+                                if(!rList.get(i).getQuestionId().equals("N/A")){
+                                    crList.add(rList.get(i));
+                                }
+                            }
+                            sendResponseToTeacher(crList);
+                        } else {
+                            showMessage("There are no Responses to Send");
+                        }
+                    }
+
                 }
 
                 @Override
@@ -156,63 +237,74 @@ public class SQdash extends AppCompatActivity
 
     private void sendResponseToTeacher(final ArrayList<Response> crList){
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SH").child(cSHid).child("responses");
+        myRef = database.getReference("SH").child(cSHid).child("participants");
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()){
-                    GenericTypeIndicator<ArrayList<Response>> t = new GenericTypeIndicator<ArrayList<Response>>() {};
-                    ArrayList<Response> rList = dataSnapshot.getValue(t);
 
-
-                    boolean clone = false;
-                    int cloneIndex = 0;
-
-                    for(int i = 0 ; i < crList.size(); i++){
-                        for(int j = 0 ; j < rList.size(); j++){
-                            if(rList.get(j).getId().equals(crList.get(i).getId())){
-                                cloneIndex = j;
-                                clone = true;
-                            }
-                        }
-
-                        if(clone){
-                            rList.set(cloneIndex,crList.get(i));
-                        }else{
-                            rList.add(crList.get(i));
-                        }
-                        clone = false;
+                GenericTypeIndicator<ArrayList<User>> t = new GenericTypeIndicator<ArrayList<User>>() {};
+                ArrayList<User> pList = dataSnapshot.getValue(t);
+                int pIndex = -1;
+                for(int i = 0 ; i< pList.size();i++){
+                    if(pList.get(i).getId().equals(userId)){
+                        pIndex = i;
                     }
-
-                    database.getReference("SH").child(cSHid).child("responses").setValue(rList);
-                    showMessage("Responses Sent");
-                }else{
-                    ArrayList<Response> rList = new ArrayList<>();
-
-                    boolean clone = false;
-                    int cloneIndex = 0;
-
-                    for(int i = 0 ; i < crList.size(); i++){
-                        for(int j = 0 ; j < rList.size(); j++){
-                            if(rList.get(j).getId().equals(crList.get(i).getId())){
-                                cloneIndex = j;
-                                clone = true;
-                            }
-                        }
-
-                        if(clone){
-                            rList.set(cloneIndex,crList.get(i));
-                        }else{
-                            rList.add(crList.get(i));
-                        }
-                        clone = false;
-                    }
-
-                    database.getReference("SH").child(cSHid).child("responses").setValue(rList);
-                    showMessage("Responses Sent");
                 }
 
+                if(pIndex == -1){
+                    //user not found in particpants
+                }else{
+                    if (!pList.get(pIndex).responses.isEmpty()) {
+                        ArrayList<Response> rList = pList.get(pIndex).responses;
+
+                        boolean clone = false;
+                        int cloneIndex = 0;
+
+                        for(int i = 0 ; i < crList.size(); i++){
+                            for(int j = 0 ; j < rList.size(); j++){
+                                if(rList.get(j).getId().equals(crList.get(i).getId())){
+                                    cloneIndex = j;
+                                    clone = true;
+                                }
+                            }
+
+                            if(clone){
+                                rList.set(cloneIndex,crList.get(i));
+                            }else{
+                                rList.add(crList.get(i));
+                            }
+                            clone = false;
+                        }
+
+                        database.getReference("SH").child(cSHid).child("participants").child(""+pIndex).child("responses").setValue(rList);
+                        showMessage("Responses Sent");
+                    } else {
+                        ArrayList<Response> rList = new ArrayList<>();
+
+                        boolean clone = false;
+                        int cloneIndex = 0;
+
+                        for(int i = 0 ; i < crList.size(); i++){
+                            for(int j = 0 ; j < rList.size(); j++){
+                                if(rList.get(j).getId().equals(crList.get(i).getId())){
+                                    cloneIndex = j;
+                                    clone = true;
+                                }
+                            }
+
+                            if(clone){
+                                rList.set(cloneIndex,crList.get(i));
+                            }else{
+                                rList.add(crList.get(i));
+                            }
+                            clone = false;
+                        }
+
+                        database.getReference("SH").child(cSHid).child("participants").child(""+pIndex).child("responses").setValue(rList);
+                        showMessage("Responses Sent");
+                    }
+                }
             }
 
             @Override

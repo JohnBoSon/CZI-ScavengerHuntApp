@@ -278,27 +278,32 @@ public class Qview extends AppCompatActivity
 
     }
 
-    private void removeQFromSHList(final int index) {
+    private void removeQFromSHList(final int cqIndex) {
 
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(ownerId).child(getIntent().getExtras().getString("CurrentIndex")).child("questions");
+        myRef = database.getReference("SH").child(SHid);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                final ArrayList qList = (ArrayList<Question>) dataSnapshot.getValue();
-                qList.remove(index);
-                database.getReference("SHList").child(ownerId).child(getIntent().getExtras().getString("CurrentIndex")).child("questions").setValue(qList);
-                database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions").setValue(qList);
+                SH sh = dataSnapshot.getValue(SH.class);
+
+                sh.removeRespQues(sh.questions.get(cqIndex));
+
+                database.getReference("SHList").child(ownerId).child(index).child("questions").setValue(sh.questions);;
+
+                database.getReference("SH").child(SHid).child("questions").setValue(sh.questions);
+                database.getReference("SH").child(SHid).child("participants").setValue(sh.participants);
+
                 showMessage("Question Deleted");
                 Intent intent = new Intent(getApplicationContext(), Qdash.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
 
                 intent.putExtra("CurrentSHid", SHid);
-                intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
+                intent.putExtra("CurrentIndex", index);
 
                 startActivity(intent);
-                //finish();
+                finish();
             }
 
             @Override

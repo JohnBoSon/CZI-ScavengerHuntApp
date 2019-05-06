@@ -1,8 +1,12 @@
 package com.example.firebasetest.Activities.Classes;
 
+import java.util.ArrayList;
+
 public class User {
     private String id;
     private String name;
+    public ArrayList<Response> responses =new ArrayList<>();
+
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)

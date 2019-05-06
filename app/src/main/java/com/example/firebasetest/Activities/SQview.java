@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide;
 import com.example.firebasetest.Activities.Beta.UploadGallery;
 import com.example.firebasetest.Activities.Classes.Question;
 import com.example.firebasetest.Activities.Classes.Response;
+import com.example.firebasetest.Activities.Classes.User;
 import com.example.firebasetest.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -158,56 +159,73 @@ public class SQview extends AppCompatActivity
     }
 
     private void saveReply(final boolean isImage, final int qListSize) {
-        myRef = database.getReference("SSHList").child(userId).child(index).child("responses");
+        myRef = database.getReference("SSHList").child(userId).child(index).child("participants");
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    GenericTypeIndicator<ArrayList<Response>> t = new GenericTypeIndicator<ArrayList<Response>>() {};
-                    ArrayList<Response> rList = dataSnapshot.getValue(t);                    Response r;
-                    String id;
-
-                    if(rList.get(Integer.parseInt(qIndex)).getId().equals("N/A")){
-                        id = database.getReference("SSHList").child(userId).child(index).child("responses").child(qIndex).child("id").push().getKey();
-                    }else{
-                        id = rList.get(Integer.parseInt(qIndex)).getId();
+                GenericTypeIndicator<ArrayList<User>> t = new GenericTypeIndicator<ArrayList<User>>() {};
+                ArrayList<User> pList = dataSnapshot.getValue(t);
+                int pIndex = -1;
+                for(int i = 0 ; i< pList.size();i++){
+                    if(pList.get(i).getId().equals(userId)){
+                        pIndex = i;
                     }
-
-
-                    if (isImage) {
-                        r = new Response(cUri, id, userId, isImage, qId);
-                    } else {
-                        r = new Response(replyET.getText().toString(), id, userId, isImage, qId);
-                    }
-                    //showMessage(""+qId.equals(((Response)rList.get(0)).getQuestionId()));
-
-                    rList.set(Integer.parseInt(qIndex), r);
-
-
-                    database.getReference("SSHList").child(userId).child(index).child("responses").setValue(rList);
-
-                    showMessage("Saved");
-
-                } else {
-                    ArrayList<Response> rList = new ArrayList<>();
-
-                    for(int i = 0 ; i < qListSize; i++){
-                        Response t = new Response("N/A", "N/A", "N/A", false, "N/A");
-                        rList.add(t);
-                    }
-
-                    Response r;
-
-                    String id = database.getReference("SSHList").child(userId).child(index).child("responses").child(qIndex).child("id").push().getKey();
-                    if (isImage) {
-                        r = new Response(cUri, id, userId, isImage, qId);
-                    } else {
-                        r = new Response(replyET.getText().toString(), id, userId, isImage, qId);
-                    }
-                    rList.set(Integer.parseInt(qIndex), r);
-                    database.getReference("SSHList").child(userId).child(index).child("responses").setValue(rList);
                 }
 
+                if(pIndex == -1){
+                    //user not found in particpants
+                }else{
+                    if (!pList.get(pIndex).responses.isEmpty()) {
+                        ArrayList<Response> rList = pList.get(pIndex).responses;
+                        Response r;
+                        String id;
+
+                        if(rList.get(Integer.parseInt(qIndex)).getId().equals("N/A")){
+                            id = database.getReference("SSHList").child(userId).child(index).child("participants").child(""+pIndex).child("responses").child(qIndex).child("id").push().getKey();
+                        }else{
+                            id = rList.get(Integer.parseInt(qIndex)).getId();
+                        }
+
+
+                        if (isImage) {
+                            r = new Response(cUri, id, userId, isImage, qId);
+                        } else {
+                            r = new Response(replyET.getText().toString(), id, userId, isImage, qId);
+                        }
+                        //showMessage(""+qId.equals(((Response)rList.get(0)).getQuestionId()));
+
+                        rList.set(Integer.parseInt(qIndex), r);
+
+                        pList.get(pIndex).responses = rList;
+                        database.getReference("SSHList").child(userId).child(index).child("participants").setValue(pList);
+
+                        showMessage("Saved");
+
+                    } else {
+                        ArrayList<Response> rList = new ArrayList<>();
+
+                        for(int i = 0 ; i < qListSize; i++){
+                            Response tempR = new Response("N/A", "N/A", "N/A", false, "N/A");
+                            rList.add(tempR);
+                        }
+
+                        Response r;
+
+                        String id = database.getReference("SSHList").child(userId).child(index).child("participants").child(""+pIndex).child("responses").child(qIndex).child("id").push().getKey();
+                        if (isImage) {
+                            r = new Response(cUri, id, userId, isImage, qId);
+                        } else {
+                            r = new Response(replyET.getText().toString(), id, userId, isImage, qId);
+                        }
+                        rList.set(Integer.parseInt(qIndex), r);
+
+                        pList.get(pIndex).responses = rList;
+                        database.getReference("SSHList").child(userId).child(index).child("participants").setValue(pList);
+                        showMessage("Saved");
+
+
+                    }
+                }
             }
 
             @Override
@@ -243,12 +261,24 @@ public class SQview extends AppCompatActivity
     }
 
     private void updateViewR() {
-        myRef = database.getReference("SSHList").child(userId).child(index).child("responses").child(qIndex);
+        myRef = database.getReference("SSHList").child(userId).child(index).child("participants");
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    Response r = dataSnapshot.getValue(Response.class);
+                GenericTypeIndicator<ArrayList<User>> t = new GenericTypeIndicator<ArrayList<User>>() {};
+                ArrayList<User> pList = dataSnapshot.getValue(t);
+                int pIndex = -1;
+                for(int i = 0 ; i< pList.size();i++){
+                    if(pList.get(i).getId().equals(userId)){
+                        pIndex = i;
+                    }
+                }
+
+                if(pIndex == -1){
+                    //user not found in particpants
+                }else{
+                    if (!pList.get(pIndex).responses.isEmpty()) {
+                    Response r = pList.get(pIndex).responses.get(Integer.parseInt(qIndex));
 
                     if(qType.equals("TEXT")){
                         if (r.getReply().equals("N/A")) {
@@ -269,15 +299,13 @@ public class SQview extends AppCompatActivity
                         noteTV.setVisibility(View.GONE);
                     }
 
-                }else{
-                    if(qType.equals("TEXT")){
-                        replyET.setHint("Enter Your Answer Here");
-                        imageView.setVisibility(View.GONE);
+                    } else {
+                        if(qType.equals("TEXT")){
+                            replyET.setHint("Enter Your Answer Here");
+                            imageView.setVisibility(View.GONE);
+                        }
+                        noteTV.setVisibility(View.GONE);
                     }
-
-                    noteTV.setVisibility(View.GONE);
-
-                    //showMessage("Error with Response List");
                 }
             }
             @Override

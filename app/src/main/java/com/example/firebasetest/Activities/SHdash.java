@@ -208,7 +208,8 @@ public class SHdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
+            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+
             startActivity(Swipe);
 
         } else if (id == R.id.nav_manage_sh) {

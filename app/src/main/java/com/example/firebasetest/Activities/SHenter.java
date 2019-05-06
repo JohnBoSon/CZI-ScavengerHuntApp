@@ -68,7 +68,7 @@ private EditText accessCode;
                     showMessage("Enter an Access Code");
                 }else{
                    //findSH(accessCode.getText().toString());
-                    findSH("-Le8Xy4osjTDxxJfEQnV");
+                    findSH("-Le9-LKmVWnpVnAZzczX");
                 }
             }
         });
@@ -195,7 +195,6 @@ private EditText accessCode;
                         if(!exist){
                             User u = new User(currentUser.getUid(), currentUser.getDisplayName());
                             sh.participants.add(u);
-                            database.getReference("SHP").child(eSHid).child(userId).setValue(currentUser.getDisplayName());
                             database.getReference("SH").child(eSHid).setValue(sh);
                             addSHList(userId,sh);
 
@@ -255,7 +254,7 @@ private EditText accessCode;
                         prepareBundleAndFinish(SQdash.class, "" + shList.size(), jSH.getId());
 
                     }else{
-                        showMessage("You are Already in this Scavenger Hunt");
+                        //showMessage("You are Already in this Scavenger Hunt");
                         //prepareBundleAndFinish(SQdash.class, "" + eindex, jSH.getId());
                     }
                 }else{

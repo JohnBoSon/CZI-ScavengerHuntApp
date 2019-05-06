@@ -20,7 +20,6 @@ public class SH {
     private String endDate;
     private int maxScore;
 
-    public ArrayList<Response> responses =new ArrayList<>();
     public ArrayList<Question> questions =new ArrayList<>();
     public ArrayList<User> participants =new ArrayList<>();
 
@@ -69,49 +68,31 @@ public class SH {
         return formatter.format(dueDate);
     }
 
-    public void removeStudentResponse(String studentId){
-        for(int i=0; i<responses.size(); i++) {
-            Response currentResponse = responses.get(i);
-            if(currentResponse.replierId == studentId) {
-                responses.remove(i);
-                i--;
-            }
-        }
-    }
-
 
     public void removeRespQues(Question q){
-        for(int i=0; i<responses.size(); i++) {
-            Response currentResponse = responses.get(i);
-            if(currentResponse.questionId == q.id) {
-                responses.remove(i);
-                i--;
+        for(int n =0; n < participants.size(); n++){
+            for(int i=0; i<participants.get(n).responses.size(); i++) {
+                Response currentResponse = participants.get(n).responses.get(i);
+                if(currentResponse.questionId.equals(q.id)) {
+                    participants.get(n).responses.remove(i);
+                    i--;
+                }
             }
         }
         questions.remove(questions.indexOf(q));
     }
 
 
-    public ArrayList<Response> respStudent(String studentId){
-        ArrayList<Response> resp = new ArrayList<>();
-
-        for(int i=0; i<responses.size(); i++) {
-            Response currentResponse = responses.get(i);
-            if(currentResponse.replierId == studentId) {
-                resp.add(responses.get(i));
-            }
-        }
-        return resp;
-    }
-
 
     public int ungradedCounter(String QuesId){
         int countUngraded = 0;
 
-        for(int i=0; i<responses.size(); i++) {
-            Response currentResponse = responses.get(i);
-            if(currentResponse.questionId == QuesId && !currentResponse.graded) {
-                countUngraded++;
+        for(int n =0; n < participants.size(); n++){
+            for(int i=0; i<participants.get(n).responses.size(); i++) {
+                Response currentResponse = participants.get(n).responses.get(i);
+                if(currentResponse.questionId == QuesId && !currentResponse.graded) {
+                    countUngraded++;
+                }
             }
         }
         return countUngraded;
@@ -120,10 +101,21 @@ public class SH {
     public int studentScore(String studentId){
         int countGraded = 0;
 
-        for(int i=0; i<responses.size(); i++) {
-            Response currentResponse = responses.get(i);
-            if(currentResponse.replierId == studentId && currentResponse.graded && currentResponse.pass) {
-                countGraded++;
+        int index = -1;
+        for(int i =0; i < participants.size();i++){
+            if(participants.get(i).getId() == studentId){
+                index = i;
+            }
+        }
+
+        if(index == -1){
+            //not found
+        }else {
+            for (int i = 0; i < participants.get(index).responses.size(); i++) {
+                Response currentResponse = participants.get(index).responses.get(i);
+                if (currentResponse.replierId == studentId && currentResponse.graded && currentResponse.pass) {
+                    countGraded++;
+                }
             }
         }
         return countGraded;

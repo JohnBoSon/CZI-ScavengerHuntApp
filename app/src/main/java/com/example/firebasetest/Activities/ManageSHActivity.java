@@ -41,7 +41,7 @@ public class ManageSHActivity extends AppCompatActivity {
         myRef = database.getReference("SH");
 
         sh_title = findViewById(R.id.title_sh);
-
+/*
 
         //id is create when added to database
         String id = "";
@@ -57,7 +57,7 @@ public class ManageSHActivity extends AppCompatActivity {
 //            public Response(String reply, String id, String replierId, boolean isImage, String questionId) {
 
         Response t1 = new Response("replye", "ides", "ddasd",true,"dsada");
-        testingScav1.responses.add(t1);
+        //testingScav1.responses.add(t1);
 
         ArrayList<SH> shList = new ArrayList<>();
         shList.add(testingScav1);
