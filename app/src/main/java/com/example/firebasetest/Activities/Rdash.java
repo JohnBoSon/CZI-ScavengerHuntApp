@@ -28,9 +28,12 @@ import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -44,11 +47,11 @@ public class Rdash extends AppCompatActivity
     String ownerId;
     String index;
     String cSHid;
+    String pIndex;
     //test
     ListView lv;
     FirebaseListAdapter adapter;
-    private Button statsBtn;
-    private Button qGradeBtn;
+
 
 
 
@@ -64,35 +67,16 @@ public class Rdash extends AppCompatActivity
 
         index = getIntent().getExtras().getString("CurrentIndex");
         cSHid = getIntent().getExtras().getString("CurrentSHid");
-
-
-        //demo fake data
-        //addResultsToDB(generateFakeResults());
+        pIndex = getIntent().getExtras().getString("CurrentPIndex");
 
         lv = (ListView) findViewById(R.id.listView);
-        qGradeBtn = (Button) findViewById(R.id.qGradeBtn);
-        statsBtn = (Button) findViewById(R.id.statsBtn);
-
-
         setUpListView();
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
                 Toast.makeText(Rdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
-
-            }
-        });
-
-        statsBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-            }
-        });
-
-        qGradeBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+                prepareBundleAndFinish(Rview.class, index + "");
             }
         });
 
@@ -101,10 +85,10 @@ public class Rdash extends AppCompatActivity
     }
 
     private void setUpListView(){
-        Query query = database.getReference().child("SHList").child(ownerId).child(index).child("responses");
+        Query query = database.getReference().child("SH").child(cSHid).child("participants").child(pIndex).child("responses");
 
         FirebaseListOptions<Response> options = new FirebaseListOptions.Builder<Response>()
-                .setLayout(R.layout.sh_adapter_view_layout)
+                .setLayout(R.layout.adapter_question_view)
                 .setLifecycleOwner(Rdash.this)
                 .setQuery(query, Response.class)
                 .build();
@@ -112,38 +96,45 @@ public class Rdash extends AppCompatActivity
         adapter = new FirebaseListAdapter<Response>(options) {
             @Override
             protected void populateView(View v, Response model, int position) {
-                Response cResponse = (Response) model;
+                makeView(model,v);
 
-                TextView title = (TextView) v.findViewById(R.id.textView1);
-                TextView gradeStatus = (TextView) v.findViewById(R.id.textView2);
-                TextView scoreStatus = (TextView) v.findViewById(R.id.textView3);
-
-                title.setText("Question " + position);
-                if(model.isGraded()){
-                    gradeStatus.setText("Graded");
-                    if(model.isPass()){
-                        scoreStatus.setText("Full Credit");
-                    }else{
-                        scoreStatus.setText("No Credit");
-                    }
-                }else{
-                    gradeStatus.setText("Ungraded");
-                    scoreStatus.setText("");
-                }
-
-                Animation animation = null;
-                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                v.startAnimation(animation);
             }
         };
 
         lv.setAdapter(adapter);
     }
 
-    private void prepareBundleAndFinish(Class nextView) {
+    private void makeView(final Response model,final View v){
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SH").child(cSHid);
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+
+                TextView title = (TextView) v.findViewById(R.id.textView1);
+                title.setText("Question " + sh.getQuestionPosition(model.getQuestionId()));
+
+                Animation animation = null;
+                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                v.startAnimation(animation);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+    private void prepareBundleAndFinish(Class nextView, String rIndex) {
         Intent intent = new Intent(getApplicationContext(), nextView);
         intent.putExtra("CurrentSHid", cSHid);
         intent.putExtra("CurrentIndex", index);
+        intent.putExtra("CurrentRIndex", rIndex);
+        intent.putExtra("CurrentPIndex", pIndex);
+
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
         finish();

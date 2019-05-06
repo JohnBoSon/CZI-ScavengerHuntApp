@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,8 +28,12 @@ import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 
 public class Pdash extends AppCompatActivity
@@ -36,28 +41,26 @@ public class Pdash extends AppCompatActivity
 
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
+    FirebaseDatabase database;
+    DatabaseReference myRef;
     ListView lv;
     FirebaseListAdapter adapter;
     String index;
     String cSHid;
     String ownerId;
 
+    private Button statsBtn;
+    private Button qGradeBtn;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home2);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_pdash);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        updateNavHeader();
+        qGradeBtn = (Button) findViewById(R.id.qGradeBtn);
+        statsBtn = (Button) findViewById(R.id.statsBtn);
+
 
 
         mAuth = FirebaseAuth.getInstance();
@@ -67,11 +70,14 @@ public class Pdash extends AppCompatActivity
         index = getIntent().getExtras().getString("CurrentIndex");
         cSHid = getIntent().getExtras().getString("CurrentSHid");
 
+
+        menuBarSetUp();
+
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId).child(index).child("participants");
+        Query query = FirebaseDatabase.getInstance().getReference().child("SH").child(cSHid).child("participants");
 
         FirebaseListOptions<User> options = new FirebaseListOptions.Builder<User>()
-                .setLayout(R.layout.adapter_question_view)
+                .setLayout(R.layout.sh_adapter_view_layout)
                 .setLifecycleOwner(Pdash.this)
                 .setQuery(query,User.class)
                 .build();
@@ -79,12 +85,7 @@ public class Pdash extends AppCompatActivity
         adapter = new FirebaseListAdapter<User>(options) {
             @Override
             protected void populateView(View v, User model, int position) {
-                TextView title = (TextView) v.findViewById(R.id.textView1);
-                title.setText(model.getName());
-                Animation animation = null;
-                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                v.startAnimation(animation);
-
+                makeView(model,v);
             }
         };
 
@@ -93,11 +94,73 @@ public class Pdash extends AppCompatActivity
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int qIndex, long l) {
-                Toast.makeText(Pdash.this, "Clicked "+ qIndex, Toast.LENGTH_SHORT).show();
+            public void onItemClick(AdapterView<?> adapterView, View view, int pIndex, long l) {
+                Toast.makeText(Pdash.this, "Clicked "+ pIndex, Toast.LENGTH_SHORT).show();
+                prepareBundleAndFinish(pIndex + "");
             }
         });
 
+        statsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            }
+        });
+
+        qGradeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            }
+        });
+    }
+
+    private void prepareBundleAndFinish( final String pIndex) {
+        Intent intent = new Intent(getApplicationContext(), Rdash.class);
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentPIndex", pIndex);
+        intent.putExtra("CurrentIndex", index);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
+    }
+
+    private void makeView(final User model, final View v){
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SH").child(cSHid);
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+                TextView name = (TextView) v.findViewById(R.id.textView1);
+                TextView grade = (TextView) v.findViewById(R.id.textView2);
+                TextView responseSubmitted = (TextView) v.findViewById(R.id.textView3);
+
+                name.setText(model.getName());
+
+                if(model.responses.size() > 0 ){
+                    if(model.isGraded()){
+                        grade.setText("Score: " + model.getGrade() + " Out of " + sh.getMaxScore());
+                    }else{
+                        grade.setText("Score: Ungraded");
+                    }
+
+                    responseSubmitted.setText(model.responses.size() + " Responses");
+
+                }else{
+                    grade.setText("");
+                    responseSubmitted.setText("No Responses");
+                }
+
+                Animation animation = null;
+                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                v.startAnimation(animation);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
     }
 
     @Override
@@ -169,5 +232,18 @@ public class Pdash extends AppCompatActivity
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
 
+    }
+
+    private void menuBarSetUp(){
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
     }
 }

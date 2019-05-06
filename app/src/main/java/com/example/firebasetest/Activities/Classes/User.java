@@ -17,6 +17,25 @@ public class User {
         this.name = name;
     }
 
+    public int getGrade(){
+        int grade = 0;
+        for(int i = 0; i < responses.size(); i++){
+            if(responses.get(i).isPass()){
+                grade++;
+            }
+        }
+        return grade;
+    }
+
+    public boolean isGraded(){
+        for(int i = 0; i < responses.size(); i++){
+            if(!responses.get(i).isGraded()){
+                return false;
+            }
+        }
+        return true;
+    }
+
     public String getId() {
         return id;
     }

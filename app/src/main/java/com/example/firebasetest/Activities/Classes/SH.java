@@ -37,6 +37,16 @@ public class SH {
         this.endDate = date;
     }
 
+    public int getQuestionPosition(String qId){
+        int index = -1;
+
+        for(int i = 0; i < questions.size();i++){
+            if(qId.equals(questions.get(i).getId())){
+                index = i;
+            }
+        }
+        return index;
+    }
 
     public boolean checkOngoing(){
         Date todayDate = Calendar.getInstance().getTime();

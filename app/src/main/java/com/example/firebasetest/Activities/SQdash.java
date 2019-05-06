@@ -109,7 +109,7 @@ public class SQdash extends AppCompatActivity
 
                     ArrayList<Question> qList = sh.questions;
                     database.getReference("SSHList").child(userId).child(index).child("questions").setValue(qList);
-                    compareQnR();
+                    compareQnR(sh);
                 }
 
                 @Override
@@ -119,7 +119,7 @@ public class SQdash extends AppCompatActivity
             });
         }
 
-        private void compareQnR(){
+        private void compareQnR(final SH mSH){
             database = FirebaseDatabase.getInstance();
             myRef = database.getReference("SSHList").child(userId).child(index);
 
@@ -145,7 +145,7 @@ public class SQdash extends AppCompatActivity
                         for(int n = 0 ; n < sh.questions.size(); n++){
                             for(int i =0; i < sh.participants.get(pIndex).responses.size(); i++){
                                 if(sh.participants.get(pIndex).responses.get(i).getQuestionId().equals(sh.questions.get(n).getId())){
-                                    match = sh.participants.get(pIndex).responses.get(i);
+                                    match = mSH.participants.get(pIndex).responses.get(i);
                                 }
                             }
                             nrList.add(match);

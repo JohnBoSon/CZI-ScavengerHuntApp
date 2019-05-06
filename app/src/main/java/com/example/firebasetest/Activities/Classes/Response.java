@@ -21,38 +21,72 @@ public class Response {
         this.isImage = isImage;
         this.questionId = questionId;
         this.note = "";
+        pass = false;
+        graded = false;
+
     }
 
+    public String getReply() {
+        return reply;
+    }
 
-    public String getNote() { return note; }
+    public void setReply(String reply) {
+        this.reply = reply;
+    }
 
-    public void setNote(String reply) { this.note = reply; }
+    public String getId() {
+        return id;
+    }
 
-    public String getReply() { return reply; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public void setReply(String reply) { this.reply = reply; }
+    public String getReplierId() {
+        return replierId;
+    }
 
-    public String getId() { return id; }
+    public void setReplierId(String replierId) {
+        this.replierId = replierId;
+    }
 
-    public void setId(String id) { this.id = id; }
+    public boolean isImage() {
+        return isImage;
+    }
 
-    public String getReplierId() { return replierId; }
+    public void setImage(boolean image) {
+        isImage = image;
+    }
 
-    public void setReplierId(String replierId) { this.replierId = replierId; }
+    public String getQuestionId() {
+        return questionId;
+    }
 
-    public boolean isImage() { return isImage; }
+    public void setQuestionId(String questionId) {
+        this.questionId = questionId;
+    }
 
-    //public void setImage(boolean image) { isImage = image; }
+    public boolean isGraded() {
+        return graded;
+    }
 
-    public String getQuestionId() { return questionId; }
+    public void setGraded(boolean graded) {
+        this.graded = graded;
+    }
 
-    public void setQuestionId(String questionId) { this.questionId = questionId; }
+    public boolean isPass() {
+        return pass;
+    }
 
-    public boolean isGraded() { return graded; }
+    public void setPass(boolean pass) {
+        this.pass = pass;
+    }
 
-    public void setGraded(boolean graded) { this.graded = graded; }
+    public String getNote() {
+        return note;
+    }
 
-    public boolean isPass() { return pass; }
-
-    public void setPass(boolean pass) { this.pass = pass; }
+    public void setNote(String note) {
+        this.note = note;
+    }
 }

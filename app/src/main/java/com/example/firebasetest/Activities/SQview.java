@@ -82,7 +82,6 @@ public class SQview extends AppCompatActivity
         userId = currentUser.getUid();
         database = FirebaseDatabase.getInstance();
 
-
         index = getIntent().getExtras().getString("CurrentIndex");
         cSHid = getIntent().getExtras().getString("CurrentSHid");
         qIndex = getIntent().getExtras().getString("CurrentQIndex");
@@ -280,24 +279,24 @@ public class SQview extends AppCompatActivity
                     if (!pList.get(pIndex).responses.isEmpty()) {
                     Response r = pList.get(pIndex).responses.get(Integer.parseInt(qIndex));
 
-                    if(qType.equals("TEXT")){
-                        if (r.getReply().equals("N/A")) {
-                            replyET.setHint("Enter Your Answer Here");
-                        } else {
-                            replyET.setHint(r.getReply());
+                        if(qType.equals("TEXT")){
+                            if (r.getReply().equals("N/A")) {
+                                replyET.setHint("Enter Your Answer Here");
+                            } else {
+                                replyET.setHint(r.getReply());
+                            }
+                            imageView.setVisibility(View.GONE);
+                        }else{
+                            if (qType.equals("PHOTO")&& !r.getQuestionId().equals("N/A")) {
+                                Glide.with(imageView.getContext()).load(r.getReply()).into(imageView);
+                            }
                         }
-                        imageView.setVisibility(View.GONE);
-                    }else{
-                        if (qType.equals("PHOTO")&& !r.getQuestionId().equals("N/A")) {
-                            Glide.with(imageView.getContext()).load(r.getReply()).into(imageView);
-                        }
-                    }
 
-                    if (!(r.getNote().equals("N/A"))) {
-                        noteTV.setText(r.getNote());
-                    } else {
-                        noteTV.setVisibility(View.GONE);
-                    }
+                        if (!(r.getNote().equals("N/A"))) {
+                            noteTV.setText(r.getNote());
+                        } else {
+                            noteTV.setVisibility(View.GONE);
+                        }
 
                     } else {
                         if(qType.equals("TEXT")){
