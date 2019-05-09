@@ -92,8 +92,9 @@ public class SHview extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
-            startActivity(Swipe);
+            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+
+            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
             Intent manageSHActivity = new Intent(getApplicationContext(),ManageSHActivity.class);

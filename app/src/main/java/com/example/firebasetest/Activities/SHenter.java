@@ -67,8 +67,8 @@ private EditText accessCode;
                 if(accessCode.getText().toString().isEmpty()){
                     showMessage("Enter an Access Code");
                 }else{
-                   //findSH(accessCode.getText().toString());
-                    findSH("-Le9-LKmVWnpVnAZzczX");
+                   findSH(accessCode.getText().toString());
+                    //findSH("-Le9-LKmVWnpVnAZzczX");
                 }
             }
         });
@@ -115,8 +115,9 @@ private EditText accessCode;
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
-            startActivity(Swipe);
+            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+
+            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 

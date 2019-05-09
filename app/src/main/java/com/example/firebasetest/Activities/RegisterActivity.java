@@ -161,7 +161,7 @@ public class RegisterActivity extends AppCompatActivity {
         database.getReference("User").child(ownerId).child("currentR").setValue("");
         database.getReference("User").child(ownerId).child("currentSH").setValue("");
 
-        Intent homeActivity = new Intent(getApplicationContext(),Home.class);
+        Intent homeActivity = new Intent(getApplicationContext(),SSHdash.class);
         startActivity(homeActivity);
         finish();
 
@@ -171,6 +171,16 @@ public class RegisterActivity extends AppCompatActivity {
     private void showMessage(String message) {
         Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+        //intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
+        //intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     // update user photo and name

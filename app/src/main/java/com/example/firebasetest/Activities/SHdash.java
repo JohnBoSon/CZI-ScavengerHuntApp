@@ -19,6 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.Adapters.SHAdapter;
 import com.example.firebasetest.R;
@@ -80,29 +81,7 @@ public class SHdash extends AppCompatActivity
         adapter = new FirebaseListAdapter<SH>(options) {
             @Override
             protected void populateView(View v, SH model, int position) {
-                SH cSH = (SH) model;
-                String shTitle = cSH.getTitle();
-                String onGoingStatus;
-
-                if(cSH.checkOngoing()){
-                    onGoingStatus = "OnGoing";
-                }else{
-                    onGoingStatus = "Ended";
-                }
-
-                String numPeople =  cSH.participants.size() + " Participants";
-
-                TextView title = (TextView) v.findViewById(R.id.textView1);
-                TextView participants = (TextView) v.findViewById(R.id.textView2);
-                TextView ongoingStatus = (TextView) v.findViewById(R.id.textView3);
-
-                title.setText(shTitle);
-                participants.setText(onGoingStatus);
-                ongoingStatus.setText(numPeople);
-
-                Animation animation = null;
-                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                v.startAnimation(animation);
+                setUpView(model.getId(), v);
 
             }
         };
@@ -145,6 +124,47 @@ public class SHdash extends AppCompatActivity
 
 
 
+
+    }
+
+    private void setUpView(String SHid, final View v){
+        myRef = database.getReference("SH").child(SHid);
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                SH cSH = dataSnapshot.getValue(SH.class);
+
+                String shTitle = cSH.getTitle();
+                String onGoingStatus;
+
+                if(cSH.checkOngoing()){
+                    onGoingStatus = "OnGoing";
+                }else{
+                    onGoingStatus = "Ended";
+                }
+
+                String numPeople =  cSH.participants.size() + " Participants";
+
+                TextView title = (TextView) v.findViewById(R.id.textView1);
+                TextView participants = (TextView) v.findViewById(R.id.textView2);
+                TextView ongoingStatus = (TextView) v.findViewById(R.id.textView3);
+
+                title.setText(shTitle);
+                participants.setText(onGoingStatus);
+                ongoingStatus.setText(numPeople);
+
+                Animation animation = null;
+                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                v.startAnimation(animation);
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
 
     }
 
@@ -208,9 +228,9 @@ public class SHdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
 
-            startActivity(Swipe);
+            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 

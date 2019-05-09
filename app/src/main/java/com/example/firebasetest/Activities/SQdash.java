@@ -70,6 +70,9 @@ public class SQdash extends AppCompatActivity
             index = getIntent().getExtras().getString("CurrentIndex");
             cSHid = getIntent().getExtras().getString("CurrentSHid");
 
+
+            showMessage(index + " ," + cSHid);
+
             database = FirebaseDatabase.getInstance();
             myRef = database.getReference("SH").child(userId);
 
@@ -126,12 +129,19 @@ public class SQdash extends AppCompatActivity
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    SH sh = dataSnapshot.getValue(SH.class);
+                    SH ssh = dataSnapshot.getValue(SH.class);
 
                     int pIndex = -1;
-                    for(int i = 0 ; i< sh.participants.size();i++){
-                        if(sh.participants.get(i).getId().equals(userId)){
+                    for(int i = 0 ; i< mSH.participants.size();i++){
+                        if(mSH.participants.get(i).getId().equals(userId)){
                             pIndex = i;
+                        }
+                    }
+
+                    int sshpIndex = -1;
+                    for(int i = 0 ; i< ssh.participants.size();i++){
+                        if(ssh.participants.get(i).getId().equals(userId)){
+                            sshpIndex = i;
                         }
                     }
 
@@ -142,16 +152,19 @@ public class SQdash extends AppCompatActivity
                         Response match = new Response("N/A", "N/A", "N/A", false, "N/A");
                         ArrayList<Response> nrList = new ArrayList<>();
 
-                        for(int n = 0 ; n < sh.questions.size(); n++){
-                            for(int i =0; i < sh.participants.get(pIndex).responses.size(); i++){
-                                if(sh.participants.get(pIndex).responses.get(i).getQuestionId().equals(sh.questions.get(n).getId())){
-                                    match = mSH.participants.get(pIndex).responses.get(i);
+                        for(int n = 0 ; n < mSH.questions.size(); n++){
+                                if(ssh.participants.get(sshpIndex).responses.get(n).getQuestionId().equals(mSH.questions.get(n).getId())){
+                                    if(mSH.questions.get(n).getReplyType().equals("PHOTO") && ssh.participants.get(sshpIndex).responses.get(n).isImage() ) {
+                                        match = ssh.participants.get(sshpIndex).responses.get(n);
+                                    }else if(mSH.questions.get(n).getReplyType().equals("TEXT") && !ssh.participants.get(sshpIndex).responses.get(n).isImage() ){
+                                        match = ssh.participants.get(sshpIndex).responses.get(n);
+                                    }
                                 }
-                            }
+
                             nrList.add(match);
                             match = new Response("N/A", "N/A", "N/A", false, "N/A");
                         }
-                        database.getReference("SSHList").child(userId).child(index).child("participants").child(""+pIndex).child("responses").setValue(nrList);
+                        database.getReference("SSHList").child(userId).child(index).child("participants").child(sshpIndex+"").child("responses").setValue(nrList);
 
 
                     }
@@ -372,12 +385,12 @@ public class SQdash extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        Intent intent = new Intent(getApplicationContext(), SSHdash.class);
+        //intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
+        //intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        //finish();
     }
 
     @Override
@@ -401,8 +414,9 @@ public class SQdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
-            startActivity(Swipe);
+            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+
+            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 

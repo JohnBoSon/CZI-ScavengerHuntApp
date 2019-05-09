@@ -190,7 +190,7 @@ public class Qdash extends AppCompatActivity
         intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
-        //finish();
+        finish();
     }
 
     @Override
@@ -223,8 +223,9 @@ public class Qdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
-            startActivity(Swipe);
+            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+
+            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 

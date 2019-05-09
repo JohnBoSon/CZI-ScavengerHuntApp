@@ -73,10 +73,15 @@ public class SSHdash extends AppCompatActivity
         adapter = new FirebaseListAdapter<SH>(options) {
             @Override
             protected void populateView(View v, SH model, int position) {
+                updateList(model.getId(),position + "",v);
+
+/*
                 SH cSH = (SH) model;
                 String shTitle = cSH.getTitle();
                 String onGoingStatus;
                 String completed;
+
+                //updateList(model.getId(), "" +  position,  v,  model,  position);
 
                 if(cSH.checkOngoing()){
                     onGoingStatus = "OnGoing";
@@ -85,7 +90,8 @@ public class SSHdash extends AppCompatActivity
                 }
 
                 if(true){
-                    completed =  "Finished and Submitted";
+                    completed =  "TBA";
+                    //completed =  "Finished and Submitted";
                 }else if (false){
                     completed =  "Unfinished but Submitted";
                 }else{
@@ -103,6 +109,8 @@ public class SSHdash extends AppCompatActivity
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
                 v.startAnimation(animation);
+
+                */
 
             }
         };
@@ -163,6 +171,57 @@ public class SSHdash extends AppCompatActivity
 
     }
 
+    private void updateList(final String shId,final String index,final View v){
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("SH").child(shId);
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH cSH = dataSnapshot.getValue(SH.class);
+
+                String shTitle = cSH.getTitle();
+                String onGoingStatus;
+                String completed;
+
+                if(cSH.checkOngoing()){
+                    onGoingStatus = "OnGoing";
+                }else{
+                    onGoingStatus = "Ended";
+                }
+
+                if(true){
+                    completed =  "TBA";
+                    //completed =  "Finished and Submitted";
+                }else if (false){
+                    completed =  "Unfinished but Submitted";
+                }else{
+                    completed = "Unfinished";
+                }
+
+                TextView title = (TextView) v.findViewById(R.id.textView1);
+                TextView participants = (TextView) v.findViewById(R.id.textView2);
+                TextView completedStatus = (TextView) v.findViewById(R.id.textView3);
+
+                title.setText(shTitle);
+                participants.setText(onGoingStatus);
+                completedStatus.setText(completed);
+
+                Animation animation = null;
+                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                v.startAnimation(animation);
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -194,8 +253,9 @@ public class SSHdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
-            startActivity(Swipe);
+            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+
+            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 

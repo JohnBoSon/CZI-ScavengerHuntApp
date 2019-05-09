@@ -42,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.registerBtn);
         loginProgress = findViewById(R.id.login_progress);
         mAuth = FirebaseAuth.getInstance();
-        HomeActivity = new Intent(this,com.example.firebasetest.Activities.Home.class);
+        HomeActivity = new Intent(this,com.example.firebasetest.Activities.SSHdash.class);
 
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -23,7 +23,6 @@ public class Response {
         this.note = "";
         pass = false;
         graded = false;
-
     }
 
     public String getReply() {
