@@ -148,36 +148,39 @@ public class SQview extends AppCompatActivity
                 SH checkingSH = dataSnapshot.getValue(SH.class);
 
                 Response cResponse = checkingSH.findReplierResponse(Integer.parseInt(qIndex), userId);
+                if(checkingSH.checkOngoing()) {
+                    if (cResponse != null) {
+                        int responseIndex = checkingSH.findIndexOfResponse(cResponse.getId());
 
-                if (cResponse != null) {
-                    int responseIndex = checkingSH.findIndexOfResponse(cResponse.getId());
+                        if (isImage) {
+                            cResponse.setReply(cUri);
 
-                    if(isImage){
-                        cResponse.setReply(cUri);
+                        } else {
+                            cResponse.setReply(replyET.getText().toString());
+                        }
 
-                    }else{
-                        cResponse.setReply(replyET.getText().toString());
-                    }
+                        cResponse.setImage(isImage);
+                        database.getReference("SH").child(cSHid).child("responses").child("" + responseIndex).setValue(cResponse);
+                        showMessage("Save Successful, New Reply");
 
-                    cResponse.setImage(isImage);
-                    database.getReference("SH").child(cSHid).child("responses").child(""+responseIndex).setValue(cResponse);
-                    showMessage("Save Successful, Changed Reply");
-
-                } else {
-                    Response r;
-                    String lastIndex = "" + checkingSH.responses.size();
-
-                    if (isImage) {
-                        r = new Response(cUri, "000", userId, isImage, qId);
                     } else {
-                        r = new Response(replyET.getText().toString(), "000", userId, isImage, qId);
-                    }
-                    checkingSH.responses.add(r);
-                    database.getReference("SH").child(cSHid).child("responses").setValue(checkingSH.responses);
-                    String id = database.getReference("SH").child(cSHid).child("responses").child(lastIndex).child("id").push().getKey();
-                    database.getReference("SH").child(cSHid).child("responses").child(lastIndex).child("id").setValue(id);
+                        Response r;
+                        String lastIndex = "" + checkingSH.responses.size();
 
-                    showMessage("Saved Successful, First Reply");
+                        if (isImage) {
+                            r = new Response(cUri, "000", userId, isImage, qId);
+                        } else {
+                            r = new Response(replyET.getText().toString(), "000", userId, isImage, qId);
+                        }
+                        checkingSH.responses.add(r);
+                        database.getReference("SH").child(cSHid).child("responses").setValue(checkingSH.responses);
+                        String id = database.getReference("SH").child(cSHid).child("responses").child(lastIndex).child("id").push().getKey();
+                        database.getReference("SH").child(cSHid).child("responses").child(lastIndex).child("id").setValue(id);
+
+                        showMessage("Saved Successful, First Reply");
+                    }
+                }else{
+                    showMessage("Deadline has Passed");
                 }
 
             }

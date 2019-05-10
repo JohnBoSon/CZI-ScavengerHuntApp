@@ -8,6 +8,7 @@ public class User {
     private int numCorrect;
     private int numResponse;
     private boolean submitted;
+    private int sListIndex;
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -19,8 +20,11 @@ public class User {
         numCorrect = 0;
         numResponse = 0;
         submitted = false;
-
     }
+
+    public int getsListIndex() { return sListIndex; }
+
+    public void setsListIndex(int sListIndex) { this.sListIndex = sListIndex; }
 
     public boolean isSubmitted() { return submitted; }
 

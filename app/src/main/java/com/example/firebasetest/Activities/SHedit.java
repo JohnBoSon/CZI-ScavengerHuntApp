@@ -23,7 +23,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Classes.Question;
 import com.example.firebasetest.Activities.Classes.SH;
+import com.example.firebasetest.Activities.Classes.User;
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -99,7 +101,7 @@ public class SHedit extends AppCompatActivity
         deleteBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                removeSHFromSHList( Integer.parseInt(index));
+                setupRemove( Integer.parseInt(index));
 
             }
         });
@@ -121,7 +123,6 @@ public class SHedit extends AppCompatActivity
                 }
 
                 showMessage("Save Successful");
-
 
             }
         });
@@ -199,14 +200,13 @@ public class SHedit extends AppCompatActivity
         });
     }
 
-    private void removeSHFromSHList(final int index) {
-
-        database = FirebaseDatabase.getInstance();
+    private void RemoveSH(final int index,final SH sh) {
         myRef = database.getReference("TList").child(ownerId);
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
+                RemoveSSH(sh);
                 shList.remove(index);
                 database.getReference("TList").child(ownerId).setValue(shList);
                 database.getReference("SH").child(cSHid).removeValue();
@@ -222,8 +222,43 @@ public class SHedit extends AppCompatActivity
                 System.out.println("The read failed: " + databaseError.getCode());
             }
         });
-
     }
+
+    private void RemoveSSH(final SH sh) {
+        myRef = database.getReference("SList").child(ownerId).child("SHmap");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
+                for(int i = 0 ; i < sh.participants.size(); i ++){
+                    shList.remove(sh.participants.get(i).getsListIndex());
+                    database.getReference("SList").child(ownerId).setValue(shList);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+    private void setupRemove(final int index){
+        myRef = database.getReference("SH").child(cSHid);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final SH sh = dataSnapshot.getValue(SH.class);
+                RemoveSH(index, sh);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
 
     @Override
     public void onBackPressed() {

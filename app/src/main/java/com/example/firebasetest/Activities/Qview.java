@@ -183,7 +183,6 @@ public class Qview extends AppCompatActivity
                         textTB.setChecked(false);
                         photoTB.setChecked(true);
                         textTB.setEnabled(false);
-
                     }
 
                     if (q.getReplyType().equals("TEXT")) {
@@ -213,34 +212,25 @@ public class Qview extends AppCompatActivity
 
     private void addQList(final String desc, final String title, final String replyType) {
 
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SH").child(cSHid).child("questions");
+        myRef = database.getReference("SH").child(cSHid);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()){
-                    final ArrayList qList = (ArrayList<Question>) dataSnapshot.getValue();
-                    String id = database.getReference("SH").child(cSHid).child("questions").child(qIndex).child("id").push().getKey();
+                SH sh = dataSnapshot.getValue(SH.class);
 
-                    Question newQ = new Question( desc, id, title, replyType);
+                String id = database.getReference("SH").child(cSHid).child("questions").child(qIndex).child("id").push().getKey();
 
-                    qList.add(newQ);
+                Question newQ = new Question( desc, id, title, replyType);
 
-                    database = FirebaseDatabase.getInstance();
-                    database.getReference("SH").child(cSHid).child("questions").setValue(qList);
+                sh.questions.add(newQ);
 
-                }else{
-
-                    final ArrayList qList = new ArrayList();
-                    String id = database.getReference("SH").child(cSHid).child("questions").child("0").child("id").push().getKey();
-
-                    Question newQ = new Question( desc, id, title, replyType);
-                    qList.add(newQ);
-
-                    database = FirebaseDatabase.getInstance();
-                    database.getReference("SH").child(cSHid).child("questions").setValue(qList);
+                for (int i = 0 ; i< sh.participants.size(); i++){
+                    sh.participants.get(i).setNumCorrect(sh.findNumCorrectResponse(sh.participants.get(i).getId()));
+                    sh.participants.get(i).setNumResponse(sh.findNumResponse(sh.participants.get(i).getId()));
                 }
+
+                database.getReference("SH").child(cSHid).setValue(sh);
             }
 
             @Override
@@ -275,6 +265,11 @@ public class Qview extends AppCompatActivity
                 SH sh = dataSnapshot.getValue(SH.class);
 
                 sh.removeRespQues(sh.questions.get(cqIndex));
+
+                for (int i = 0 ; i< sh.participants.size(); i++){
+                    sh.participants.get(i).setNumCorrect(sh.findNumCorrectResponse(sh.participants.get(i).getId()));
+                    sh.participants.get(i).setNumResponse(sh.findNumResponse(sh.participants.get(i).getId()));
+                }
 
                 database.getReference("SH").child(cSHid).setValue(sh);
 

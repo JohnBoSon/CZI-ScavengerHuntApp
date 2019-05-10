@@ -157,9 +157,6 @@ public class RegisterActivity extends AppCompatActivity {
         ownerId = currentUser.getUid();
         database = FirebaseDatabase.getInstance();
         database.getReference("User").child(ownerId).child("accountType").setValue(accType);
-        database.getReference("User").child(ownerId).child("currentQ").setValue("");
-        database.getReference("User").child(ownerId).child("currentR").setValue("");
-        database.getReference("User").child(ownerId).child("currentSH").setValue("");
 
         Intent homeActivity = new Intent(getApplicationContext(),SSHdash.class);
         startActivity(homeActivity);

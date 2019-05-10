@@ -164,8 +164,10 @@ public class Rview extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 SH sh = dataSnapshot.getValue(SH.class);
+                sh.participants.get(Integer.parseInt(pIndex)).setNumCorrect(sh.findNumCorrectResponse(sh.participants.get(Integer.parseInt(pIndex)).getId()));
 
                 ArrayList<Response> rList = sh.generateResponseList(sh.participants.get(Integer.parseInt(pIndex)).getId());
+                database.getReference().child("SH").child(cSHid).setValue(sh);
                 database.getReference().child("CurrentResponses").child(cSHid).child("responses").setValue(rList);
             }
 

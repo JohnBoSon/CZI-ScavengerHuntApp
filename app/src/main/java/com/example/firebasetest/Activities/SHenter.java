@@ -68,8 +68,8 @@ public class SHenter extends AppCompatActivity
                 if(accessCode.getText().toString().isEmpty()){
                     showMessage("Enter an Access Code");
                 }else{
-                   findSH(accessCode.getText().toString());
-                    findSH("-LeVMCit7Yh82fDLRc_W");
+                   //findSH(accessCode.getText().toString());
+                    findSH("-LeYRO6YgAzsw2KrrLI_");
                 }
             }
         });
@@ -195,7 +195,7 @@ public class SHenter extends AppCompatActivity
                             User u = new User(currentUser.getUid(), currentUser.getDisplayName());
                             sh.participants.add(u);
                             database.getReference("SH").child(eSHid).setValue(sh);
-                            addSHList(userId,sh);
+                            addSHList(userId,sh, ""+ (sh.participants.size()-1));
 
                         }else{
                             showMessage("You are Already in this Scavenger Hunt");
@@ -227,7 +227,7 @@ public class SHenter extends AppCompatActivity
     }
 
 
-    private void addSHList( final String userId, final SH jSH) {
+    private void addSHList( final String userId, final SH jSH, final String pIndex) {
 
         myRef = database.getReference("SList").child(userId).child("SHmap");
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -246,7 +246,10 @@ public class SHenter extends AppCompatActivity
                         shList.add(jSH.getId());
                         database = FirebaseDatabase.getInstance();
                         database.getReference("SList").child(userId).child("SHmap").setValue(shList);
-                        prepareBundleAndFinish(SQdash.class, "" + shList.size(), jSH.getId());
+                        database.getReference("SH").child(jSH.getId()).child("participants").child(pIndex).child("sListIndex").setValue(shList.size()-1);
+
+                        //may cause error
+                        prepareBundleAndFinish(SQdash.class, "" + (shList.size()-1), jSH.getId());
                     }else{
                         //showMessage("You are Already in this Scavenger Hunt");
                         //prepareBundleAndFinish(SQdash.class, "" + eindex, jSH.getId());
@@ -255,6 +258,8 @@ public class SHenter extends AppCompatActivity
                     final ArrayList shList = new ArrayList<String>();
                     shList.add(jSH.getId());
                     database.getReference("SList").child(userId).child("SHmap").setValue(shList);
+                    database.getReference("SH").child(jSH.getId()).child("participants").child(pIndex).child("sListIndex").setValue(0);
+
                     prepareBundleAndFinish(SQdash.class, "" + 0, jSH.getId());
                 }
             }
