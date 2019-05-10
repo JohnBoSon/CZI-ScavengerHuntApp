@@ -34,6 +34,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+
 public class Rview extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     FirebaseAuth mAuth;
@@ -84,6 +86,7 @@ public class Rview extends AppCompatActivity
         saveBtn =findViewById(R.id.saveBtn);
 
         setUpView();
+        menuBarSetUp();
 
         acceptTB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,55 +107,92 @@ public class Rview extends AppCompatActivity
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                saveEdit();
 
-                if(!acceptTB.isChecked()&& !declineTB.isChecked()){
-                    showMessage("Accept or Decline Reply");
-                }else{
-                    database.getReference("SH").child(cSHid).child("participants").child(pIndex).child("responses").child(rIndex).child("graded").setValue(true);
-                    if(acceptTB.isChecked()){
-                        database.getReference("SH").child(cSHid).child("participants").child(pIndex).child("responses").child(rIndex).child("pass").setValue(true);
-                    }else{
-                        database.getReference("SH").child(cSHid).child("participants").child(pIndex).child("responses").child(rIndex).child("pass").setValue(false);
-                    }
-
-                    if(!noteET.getText().toString().isEmpty()){
-                        database.getReference("SH").child(cSHid).child("participants").child(pIndex).child("responses").child(rIndex).child("note").setValue(noteET.getText().toString());
-                    }
-                    showMessage("Saved");
-                }
             }
         });
 
-        menuBarSetUp();
+    }
+
+    private void createResponseListandBack(){
+        myRef = database.getReference("SH").child(cSHid);;
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+
+                ArrayList<Response> rList = sh.generateResponseList(sh.participants.get(Integer.parseInt(pIndex)).getId());
+                database.getReference().child("CurrentResponses").child(cSHid).child("responses").setValue(rList);
+                Intent intent = new Intent(getApplicationContext(), Rdash.class);
+                intent.putExtra("CurrentSHid", cSHid);
+                intent.putExtra("CurrentPIndex", pIndex);
+                intent.putExtra("CurrentIndex", index);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+    }
+
+    private void saveEdit(){
+
+        if(!acceptTB.isChecked()&& !declineTB.isChecked()){
+            showMessage("Accept or Decline Reply");
+        }else{
+            database.getReference("SH").child(cSHid).child("responses").child(rIndex).child("graded").setValue(true);
+            if(acceptTB.isChecked()){
+                database.getReference("SH").child(cSHid).child("responses").child(rIndex).child("pass").setValue(true);
+            }else{
+                database.getReference("SH").child(cSHid).child("responses").child(rIndex).child("pass").setValue(false);
+            }
+
+            if(!noteET.getText().toString().isEmpty()){
+                database.getReference("SH").child(cSHid).child("responses").child(rIndex).child("note").setValue(noteET.getText().toString());
+            }
+            showMessage("Save Successful");
+        }
+
+        myRef = database.getReference("SH").child(cSHid);;
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+
+                ArrayList<Response> rList = sh.generateResponseList(sh.participants.get(Integer.parseInt(pIndex)).getId());
+                database.getReference().child("CurrentResponses").child(cSHid).child("responses").setValue(rList);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
     }
 
     private void setUpView(){
-        //showMessage("owner" + ownerId + ", index" + index + ", iQ:" +getIntent().getExtras().getString("CurrentQIndex"));
         myRef = database.getReference("SH").child(cSHid);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
-                //Response r = dataSnapshot.getValue(Response.class);
-
                 SH sh = dataSnapshot.getValue(SH.class);
-
-                //sh.participants.get(Integer.parseInt(pIndex)).responses.get(Integer.parseInt(rIndex));
-
-
-
-
-                int qIndex = sh.getQuestionPosition(sh.participants.get(Integer.parseInt(pIndex)).responses.get(Integer.parseInt(rIndex)).getQuestionId());
-
+                int qIndex = sh.getQuestionPosition(sh.responses.get(Integer.parseInt(rIndex)).getQuestionId());
 
                 questionTV.setText("Question " + qIndex);
                 titleTV.setText(sh.questions.get(qIndex).getTitle());
                 replierNameTV.setText(sh.participants.get(Integer.parseInt(pIndex)).getName());
 
                 //if exists
-                if(!sh.participants.get(Integer.parseInt(pIndex)).responses.get(Integer.parseInt(rIndex)).getNote().isEmpty()){
-                    noteET.setHint(sh.participants.get(Integer.parseInt(pIndex)).responses.get(Integer.parseInt(rIndex)).getNote());
+                if(!sh.responses.get(Integer.parseInt(rIndex)).getNote().isEmpty()){
+                    noteET.setHint(sh.responses.get(Integer.parseInt(rIndex)).getNote());
                 }else{
                     noteET.setHint("Enter Note");
                 }
@@ -160,18 +200,17 @@ public class Rview extends AppCompatActivity
                 String rType = sh.questions.get(qIndex).getReplyType();
 
                 if(rType.equals("PHOTO")){
-                    Glide.with(imageView.getContext()).load(sh.participants.get(Integer.parseInt(pIndex)).responses.get(Integer.parseInt(rIndex)).getReply()).into(imageView);
+                    Glide.with(imageView.getContext()).load(sh.responses.get(Integer.parseInt(rIndex)).getReply()).into(imageView);
                     TextReplyTv.setVisibility(View.GONE);
 
 
                 }else if(rType.equals("TEXT")){
-                    TextReplyTv.setText(sh.participants.get(Integer.parseInt(pIndex)).responses.get(Integer.parseInt(rIndex)).getReply());
+                    TextReplyTv.setText(sh.responses.get(Integer.parseInt(rIndex)).getReply());
                     imageView.setVisibility(View.GONE);
                 }
 
-
-                if(sh.participants.get(Integer.parseInt(pIndex)).responses.get(Integer.parseInt(rIndex)).isGraded()){
-                   if(sh.participants.get(Integer.parseInt(pIndex)).responses.get(Integer.parseInt(rIndex)).isPass()){
+                if(sh.responses.get(Integer.parseInt(rIndex)).isGraded()){
+                   if(sh.responses.get(Integer.parseInt(rIndex)).isPass()){
                        acceptTB.setChecked(true);
                        declineTB.setChecked(false);
                    }else{
@@ -194,13 +233,7 @@ public class Rview extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        Intent intent = new Intent(getApplicationContext(), Rdash.class);
-        intent.putExtra("CurrentSHid", cSHid);
-        intent.putExtra("CurrentPIndex", pIndex);
-        intent.putExtra("CurrentIndex", index);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(intent);
-        finish();
+        createResponseListandBack();
     }
 
     @Override

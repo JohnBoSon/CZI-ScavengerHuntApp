@@ -40,44 +40,40 @@ import java.util.ArrayList;
 public class Qdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    FirebaseAuth mAuth;
-    FirebaseUser currentUser ;
-    FirebaseDatabase database;
-    DatabaseReference myRef;
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser ;
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
     private Button addBtn;
 
-    ListView mListView;
-    String ownerId;
+    private String ownerId;
 
-    //test
-    ListView lv;
-    FirebaseListAdapter adapter;
+    private ListView lv;
+    private FirebaseListAdapter adapter;
 
-    String index;
-    String cSHid;
+    private String index;
+    private String cSHid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qdash);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         ownerId = currentUser.getUid();
+        database = FirebaseDatabase.getInstance();
 
         index = getIntent().getExtras().getString("CurrentIndex");
         cSHid = getIntent().getExtras().getString("CurrentSHid");
 
         addBtn = findViewById(R.id.addBtn);
-
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(ownerId);
-
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId).child(index).child("questions");
 
+        menuBarSetUp();
+
+        Query query = FirebaseDatabase.getInstance().getReference().child("SH").child(cSHid).child("questions");
         FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
                 .setLayout(R.layout.adapter_question_view)
                 .setLifecycleOwner(Qdash.this)
@@ -89,7 +85,7 @@ public class Qdash extends AppCompatActivity
             protected void populateView(View v, SH model, int position) {
                 TextView title = (TextView) v.findViewById(R.id.textView1);
 
-                title.setText("Question " + position);
+                title.setText("Question " + position + 1);
 
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
@@ -99,20 +95,6 @@ public class Qdash extends AppCompatActivity
         };
 
         lv.setAdapter(adapter);
-
-
-        //navi
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        updateNavHeader();
 
         addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,12 +113,25 @@ public class Qdash extends AppCompatActivity
         });
     }
 
+    private void menuBarSetUp() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
+    }
+
     private void prepareBundleAndFinish(String qIndex){
         Intent intent = new Intent(getApplicationContext(), Qview.class);
         intent.putExtra("isNewQ", "FALSE");
         intent.putExtra("CurrentQIndex", qIndex);
-        intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
-        intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentIndex", index);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
         finish();
@@ -185,7 +180,6 @@ public class Qdash extends AppCompatActivity
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(getApplicationContext(), SHedit.class);
-
         intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
         intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);

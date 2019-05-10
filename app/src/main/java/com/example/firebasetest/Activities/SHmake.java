@@ -49,34 +49,22 @@ import java.util.Map;
 public class SHmake extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    FirebaseAuth mAuth;
-    FirebaseUser currentUser ;
-    DatabaseReference myRef;
-
-
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser ;
+    private DatabaseReference myRef;
     private TextView mDisplayDate;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
     private Button createBtn;
     private FirebaseDatabase database;
     private EditText TitleET;
-
-    private String endDate = "EMPTY";
+    private String endDate = "";
     private String shTitle;
-
-
-    boolean found;
-
-    int shListSize = -9;
-    boolean stopLoop = false;
-
 
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shmake);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
@@ -86,21 +74,7 @@ public class SHmake extends AppCompatActivity
         createBtn = findViewById(R.id.createBtn);
         TitleET = findViewById(R.id.TitleET);
 
-        //test
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        updateNavHeader();
-
-
+        menuBarSetUp();
 
         createBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,17 +82,11 @@ public class SHmake extends AppCompatActivity
 
                 shTitle = TitleET.getText().toString();
 
-                if( endDate.equals("EMPTY") || shTitle.isEmpty()) {
-                    // something goes wrong : all fields must be filled
-                    // we need to display an error message
+                if( endDate.isEmpty() || shTitle.isEmpty()) {
                     showMessage("Please Verify all fields") ;
-
                 }
                 else {
-                    // everything is ok and all fields are filled now we can start creating user account
-                    // CreateUserAccount method will try to create the user if the email is valid
                     createSH(endDate,shTitle);
-
                 }
 
 
@@ -158,25 +126,40 @@ public class SHmake extends AppCompatActivity
                 mDisplayDate.setText(date);
             }
         };
+
+
+
+    }
+
+    private void menuBarSetUp() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
     }
 
     private void addSHList( final String ownerId, final SH newSH) {
 
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(ownerId);
+        myRef = database.getReference("TList").child(ownerId);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
-                    final ArrayList shList = (ArrayList<SH>) dataSnapshot.getValue();
-                    shList.add(newSH);
-                    database = FirebaseDatabase.getInstance();
-                    database.getReference("SHList").child(ownerId).setValue(shList);
+                    // not first in SHList
+                    final ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
+                    String index = shList.size() + "";
+                    shList.add(newSH.getId());
+                    database.getReference("TList").child(ownerId).setValue(shList);
 
                     Intent intent = new Intent(getApplicationContext(), SHedit.class);
-
-                    String index = shList.size()-1 + "";
                     intent.putExtra("CurrentIndex", index);
                     intent.putExtra("CurrentSHid", newSH.getId());
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -184,13 +167,11 @@ public class SHmake extends AppCompatActivity
                     finish();
 
                 }else{
-
-                    final ArrayList shList = new ArrayList<SH>();
-                    shList.add(newSH);
-                    myRef = database.getReference("SHList").child(ownerId);
-
-                    myRef.setValue(shList);
+                    // first sh in SHList
                     String index = "0";
+                    final ArrayList shList = new ArrayList<String>();
+                    shList.add(newSH.getId());
+                    database.getReference("TList").child(ownerId).setValue(shList);
 
                     Intent intent = new Intent(getApplicationContext(), SHedit.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -198,8 +179,6 @@ public class SHmake extends AppCompatActivity
                     intent.putExtra("CurrentIndex", index);
                     startActivity(intent);
                     finish();
-
-
                 }
             }
 
@@ -216,40 +195,18 @@ public class SHmake extends AppCompatActivity
         currentUser = mAuth.getCurrentUser();
         String ownerId = currentUser.getUid();
         String id = database.getReference("SH").push().getKey();
-        showMessage("create new SH ") ;
-
         SH newSH = new SH(id,ownerId, title, "", date);
 
-
-/*
-        Question q1 = new Question( "wa", "pa" , "ha", "ma");
-        Question q2 = new Question( "wa2", "pa2" , "ha2", "ma2");
-        Question q3 = new Question( "wa3", "pa3" , "ha3", "ma3");
-        Question q4 = new Question( "wa4", "pa4" , "ha4", "ma4");
-
-        ArrayList<Question> q =new ArrayList<>();
-
-        q.add(q1);
-        q.add(q2);
-        q.add(q3);
-        q.add(q4);
-
-
-        newSH.questions = q;
-*/
         database.getReference("SH").child(id).setValue(newSH);
-
         addSHList(ownerId, newSH);
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        Intent intent = new Intent(getApplicationContext(), SHdash.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -312,19 +269,12 @@ public class SHmake extends AppCompatActivity
     }
 
     public void updateNavHeader() {
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
-
         TextView navUsername = headerView.findViewById(R.id.nav_username);
         TextView navUserMail = headerView.findViewById(R.id.nav_user_mail);
-
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
-
-
-
-
     }
 
     private void showMessage(String message) {

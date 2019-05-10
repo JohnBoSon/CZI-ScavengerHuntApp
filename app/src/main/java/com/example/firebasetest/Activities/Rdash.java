@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import com.example.firebasetest.Activities.Classes.Response;
 import com.example.firebasetest.Activities.Classes.SH;
+import com.example.firebasetest.Activities.Classes.User;
 import com.example.firebasetest.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
@@ -32,6 +33,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
@@ -48,11 +50,9 @@ public class Rdash extends AppCompatActivity
     String index;
     String cSHid;
     String pIndex;
-    //test
+
     ListView lv;
     FirebaseListAdapter adapter;
-
-
 
 
     @Override
@@ -85,7 +85,7 @@ public class Rdash extends AppCompatActivity
     }
 
     private void setUpListView(){
-        Query query = database.getReference().child("SH").child(cSHid).child("participants").child(pIndex).child("responses");
+        Query query = database.getReference().child("CurrentResponses").child(cSHid).child("responses");
 
         FirebaseListOptions<Response> options = new FirebaseListOptions.Builder<Response>()
                 .setLayout(R.layout.adapter_question_view)
@@ -105,7 +105,6 @@ public class Rdash extends AppCompatActivity
     }
 
     private void makeView(final Response model,final View v){
-        database = FirebaseDatabase.getInstance();
         myRef = database.getReference("SH").child(cSHid);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -114,8 +113,11 @@ public class Rdash extends AppCompatActivity
                 SH sh = dataSnapshot.getValue(SH.class);
 
                 TextView title = (TextView) v.findViewById(R.id.textView1);
-                title.setText("Question " + sh.getQuestionPosition(model.getQuestionId()));
-
+                if(model.isGraded()){
+                    title.setText("Question " + sh.getQuestionPosition(model.getQuestionId()) + 1 + " Graded");
+                }else {
+                    title.setText("Question " + sh.getQuestionPosition(model.getQuestionId()) + 1 + " Ungraded");
+                }
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
                 v.startAnimation(animation);
@@ -128,16 +130,56 @@ public class Rdash extends AppCompatActivity
         });
     }
 
-    private void prepareBundleAndFinish(Class nextView, String rIndex) {
-        Intent intent = new Intent(getApplicationContext(), nextView);
-        intent.putExtra("CurrentSHid", cSHid);
-        intent.putExtra("CurrentIndex", index);
-        intent.putExtra("CurrentRIndex", rIndex);
-        intent.putExtra("CurrentPIndex", pIndex);
+    private void prepareBundleAndFinish(final Class nextView, String tempRIndex) {
 
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(intent);
-        finish();
+        myRef = database.getReference().child("CurrentResponses").child(cSHid).child("responses").child(tempRIndex);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Response r = dataSnapshot.getValue(Response.class);
+                findResponseIndex(nextView, r.getId());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+    }
+
+    private void findResponseIndex(final Class nextView,final String rId){
+        myRef = database.getReference("SH").child(cSHid).child("responses");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                GenericTypeIndicator<ArrayList<Response>> t = new GenericTypeIndicator<ArrayList<Response>>() {};
+                ArrayList<Response> rList = dataSnapshot.getValue(t);
+
+                String rIndex = "";
+
+                for(int i =0; i < rList.size(); i++){
+                    if(rId.equals(rList.get(i).getId())){
+                        rIndex = "" + i;
+                    }
+                }
+
+                Intent intent = new Intent(getApplicationContext(), nextView);
+                intent.putExtra("CurrentSHid", cSHid);
+                intent.putExtra("CurrentIndex", index);
+                intent.putExtra("CurrentRIndex", rIndex);
+                intent.putExtra("CurrentPIndex", pIndex);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
     }
 
     @Override
@@ -163,19 +205,6 @@ public class Rdash extends AppCompatActivity
         updateNavHeader();
     }
 
-    private void addResultsToDB(ArrayList<Response> nRlist){
-        database.getReference().child("SHList").child(ownerId).child(index).child("responses").setValue(nRlist);
-    }
-
-    private ArrayList<Response> generateFakeResults(){
-        ArrayList<Response> rlist = new ArrayList<>();
-        for(int i  = 0 ; i < 10; i++) {
-            Response nresp = new Response(i + "Reply Blah ", i + "Fake key", ownerId, false, i +"fake question id");
-            rlist.add(nresp);
-        }
-
-        return rlist;
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

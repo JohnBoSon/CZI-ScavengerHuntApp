@@ -36,11 +36,10 @@ import java.util.ArrayList;
 public class Qview extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    FirebaseAuth mAuth;
-    FirebaseUser currentUser ;
-    DatabaseReference myRef;
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser ;
+    private DatabaseReference myRef;
     private FirebaseDatabase database;
-
 
     private ToggleButton photoTB;
     private ToggleButton textTB;
@@ -51,19 +50,17 @@ public class Qview extends AppCompatActivity
     private EditText descET;
     private TextView qnumtitleTV;
 
-    String SHid;
-    String index;
-    String qindex;
-    String isNewQ;
-
-    String replyChosen = "";
+    private String cSHid;
+    private String index;
+    private String qIndex;
+    private String isNewQ;
+    private String replyChosen = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qview);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
@@ -71,24 +68,11 @@ public class Qview extends AppCompatActivity
         database = FirebaseDatabase.getInstance();
 
 
-        SHid = getIntent().getExtras().getString("CurrentSHid");
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
         index = getIntent().getExtras().getString("CurrentIndex");
-        qindex = getIntent().getExtras().getString("CurrentQIndex");
+        qIndex = getIntent().getExtras().getString("CurrentQIndex");
         isNewQ = getIntent().getExtras().getString("isNewQ");
 
-
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        updateNavHeader();
 
         photoTB = findViewById(R.id.photoTB);
         textTB = findViewById(R.id.textTB);
@@ -98,9 +82,83 @@ public class Qview extends AppCompatActivity
         deleteBtn = findViewById(R.id.deleteBtn);
         qnumtitleTV = findViewById(R.id.qnumtitleTV);
 
+        menuBarSetUp();
+        updateView();
 
-        //showMessage("owner" + ownerId + ", index" + index + ", iQ:" +getIntent().getExtras().getString("CurrentQIndex"));
-        myRef = database.getReference("SHList").child(ownerId).child(index).child("questions").child(qindex);
+            photoTB.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                        textTB.setTextOff("text");
+                        textTB.setChecked(false);
+                        photoTB.setChecked(true);
+
+                }
+            });
+
+
+            textTB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(isNewQ.equals("TRUE")) {
+                    photoTB.setTextOff("photo");
+                    photoTB.setChecked(false);
+                    textTB.setChecked(true);
+                }
+            }
+            });
+
+
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            boolean newQ = isNewQ.equals("TRUE");
+
+            @Override
+            public void onClick(View view) {
+
+                if(textTB.isChecked()) {
+                    replyChosen = "TEXT";
+                }
+
+                if(photoTB.isChecked()) {
+                    replyChosen = "PHOTO";
+                }
+
+                if (newQ && (descET.getText().toString().isEmpty() || titleET.getText().toString().isEmpty() || replyChosen.isEmpty()))  {
+                    showMessage("Complete all fields");
+                }else if(newQ) {
+                    addQList(descET.getText().toString(),titleET.getText().toString(),replyChosen);
+                    showMessage("Save Successful");
+                }else{
+
+                    if (!descET.getText().toString().isEmpty()) {
+                        database.getReference("SH").child(cSHid).child("questions").child(qIndex).child("description").setValue(descET.getText().toString());
+                    }
+
+                    if (!titleET.getText().toString().isEmpty()) {
+                        database.getReference("SH").child(cSHid).child("questions").child(qIndex).child("title").setValue(titleET.getText().toString());
+                    }
+
+                    if (!replyChosen.isEmpty()&&isNewQ.equals("TRUE")) {
+                        database.getReference("SH").child(cSHid).child("questions").child(qIndex).child("replyType").setValue(replyChosen);
+                    }
+                    showMessage("save successful");
+
+                }
+
+            }
+        });
+
+        deleteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removeQFromSHList(Integer.parseInt(qIndex));
+
+            }
+        });
+
+    }
+
+    private void updateView(){
+        myRef = database.getReference("SH").child(cSHid).child("questions").child(qIndex);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -124,149 +182,64 @@ public class Qview extends AppCompatActivity
                         textTB.setTextOff("text");
                         textTB.setChecked(false);
                         photoTB.setChecked(true);
+                        textTB.setEnabled(false);
+
                     }
 
                     if (q.getReplyType().equals("TEXT")) {
                         photoTB.setTextOff("photo");
                         photoTB.setChecked(false);
                         textTB.setChecked(true);
+                        photoTB.setEnabled(false);
+
                     }
 
-                    qnumtitleTV.setText("Question " + qindex);
+                    qnumtitleTV.setText("Question " + Integer.parseInt(qIndex) + 1);
 
                 }else{
                     descET.setHint("Enter Description");
                     titleET.setHint("Enter Title");
                     photoTB.setChecked(false);
                     textTB.setChecked(false);
-                    qnumtitleTV.setText("Question " + qindex);
-
+                    qnumtitleTV.setText("Question " + Integer.parseInt(qIndex) + 1);
                 }
-
-
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 System.out.println("The read failed: " + databaseError.getCode());
             }
         });
-
-
-        photoTB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                textTB.setTextOff("text");
-                textTB.setChecked(false);
-                photoTB.setChecked(true);
-
-            }
-        });
-
-        textTB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                photoTB.setTextOff("photo");
-                photoTB.setChecked(false);
-                textTB.setChecked(true);
-            }
-        });
-
-        saveBtn.setOnClickListener(new View.OnClickListener() {
-            boolean newQ = getIntent().getExtras().getString("isNewQ").equals("TRUE");
-
-            @Override
-            public void onClick(View view) {
-
-                if(textTB.isChecked()) {
-                    replyChosen = "TEXT";
-                }
-
-                if(photoTB.isChecked()) {
-                    replyChosen = "PHOTO";
-                }
-
-                if (newQ && (descET.getText().toString().isEmpty() || titleET.getText().toString().isEmpty() || replyChosen.isEmpty()))  {
-                    showMessage("Complete all fields");
-                }else if(newQ) {
-                    addQList(descET.getText().toString(),titleET.getText().toString(),replyChosen);
-                    showMessage("save successful");
-                }else{
-
-                    if (!descET.getText().toString().isEmpty()) {
-
-                        database.getReference("SHList").child(ownerId).child(index).child("questions").child(getIntent().getExtras().getString("CurrentQIndex")).child("description").setValue(descET.getText().toString());
-                        database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions").child(getIntent().getExtras().getString("CurrentQIndex")).child("description").setValue(descET.getText().toString());
-                    }
-
-                    if (!titleET.getText().toString().isEmpty()) {
-                        database.getReference("SHList").child(ownerId).child(index).child("questions").child(getIntent().getExtras().getString("CurrentQIndex")).child("title").setValue(titleET.getText().toString());
-                        database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions").child(getIntent().getExtras().getString("CurrentQIndex")).child("title").setValue(titleET.getText().toString());
-                    }
-
-                    if (!replyChosen.isEmpty()) {
-                        database.getReference("SHList").child(ownerId).child(index).child("questions").child(getIntent().getExtras().getString("CurrentQIndex")).child("replyType").setValue(replyChosen);
-                        database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions").child(getIntent().getExtras().getString("CurrentQIndex")).child("replyType").setValue(replyChosen);
-                    }
-                    showMessage("save successful");
-
-                }
-
-            }
-        });
-
-        deleteBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                removeQFromSHList(Integer.parseInt(qindex));
-
-            }
-        });
-
     }
 
     private void addQList(final String desc, final String title, final String replyType) {
 
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions");
+        myRef = database.getReference("SH").child(cSHid).child("questions");
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
                     final ArrayList qList = (ArrayList<Question>) dataSnapshot.getValue();
-                    String id = database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions").child(getIntent().getExtras().getString("CurrentQIndex")).child("id").push().getKey();
+                    String id = database.getReference("SH").child(cSHid).child("questions").child(qIndex).child("id").push().getKey();
 
                     Question newQ = new Question( desc, id, title, replyType);
 
                     qList.add(newQ);
 
                     database = FirebaseDatabase.getInstance();
-                    database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions").setValue(qList);
-                    database.getReference("SHList").child(ownerId).child(getIntent().getExtras().getString("CurrentIndex")).child("questions").setValue(qList);
-
-                    Intent intent = new Intent(getApplicationContext(), Qdash.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    //startActivity(intent);
-                    //finish();
+                    database.getReference("SH").child(cSHid).child("questions").setValue(qList);
 
                 }else{
 
                     final ArrayList qList = new ArrayList();
-                    String id = database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions").child("0").child("id").push().getKey();
+                    String id = database.getReference("SH").child(cSHid).child("questions").child("0").child("id").push().getKey();
 
                     Question newQ = new Question( desc, id, title, replyType);
                     qList.add(newQ);
 
                     database = FirebaseDatabase.getInstance();
-                    database.getReference("SH").child(getIntent().getExtras().getString("CurrentSHid")).child("questions").setValue(qList);
-                    database.getReference("SHList").child(ownerId).child(getIntent().getExtras().getString("CurrentIndex")).child("questions").setValue(qList);
-
-                    Intent intent = new Intent(getApplicationContext(), Qdash.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-
-                    //startActivity(intent);
-
-                    //finish();
+                    database.getReference("SH").child(cSHid).child("questions").setValue(qList);
                 }
             }
 
@@ -278,10 +251,23 @@ public class Qview extends AppCompatActivity
 
     }
 
+    private void menuBarSetUp() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
+    }
+
     private void removeQFromSHList(final int cqIndex) {
 
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SH").child(SHid);
+        myRef = database.getReference("SH").child(cSHid);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -290,18 +276,13 @@ public class Qview extends AppCompatActivity
 
                 sh.removeRespQues(sh.questions.get(cqIndex));
 
-                database.getReference("SHList").child(ownerId).child(index).child("questions").setValue(sh.questions);;
-
-                database.getReference("SH").child(SHid).child("questions").setValue(sh.questions);
-                database.getReference("SH").child(SHid).child("participants").setValue(sh.participants);
+                database.getReference("SH").child(cSHid).setValue(sh);
 
                 showMessage("Question Deleted");
                 Intent intent = new Intent(getApplicationContext(), Qdash.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-
-                intent.putExtra("CurrentSHid", SHid);
+                intent.putExtra("CurrentSHid", cSHid);
                 intent.putExtra("CurrentIndex", index);
-
                 startActivity(intent);
                 finish();
             }
@@ -318,13 +299,12 @@ public class Qview extends AppCompatActivity
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(getApplicationContext(), Qdash.class);
-        //intent.putExtra("CurrentQIndex", getIntent().getExtras().getString("CurrentQIndex"));
-        intent.putExtra("CurrentSHid", getIntent().getExtras().getString("CurrentSHid"));
-        intent.putExtra("CurrentIndex", getIntent().getExtras().getString("CurrentIndex"));
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentIndex", index);
 
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
-        //finish();
+        finish();
     }
 
     @Override

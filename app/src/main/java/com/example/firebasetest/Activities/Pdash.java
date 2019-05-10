@@ -35,6 +35,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+
 
 public class Pdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -62,10 +64,10 @@ public class Pdash extends AppCompatActivity
         statsBtn = (Button) findViewById(R.id.statsBtn);
 
 
-
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         ownerId = currentUser.getUid();
+        database = FirebaseDatabase.getInstance();
 
         index = getIntent().getExtras().getString("CurrentIndex");
         cSHid = getIntent().getExtras().getString("CurrentSHid");
@@ -96,7 +98,7 @@ public class Pdash extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pIndex, long l) {
                 Toast.makeText(Pdash.this, "Clicked "+ pIndex, Toast.LENGTH_SHORT).show();
-                prepareBundleAndFinish(pIndex + "");
+                createResponseList("" + pIndex);
             }
         });
 
@@ -123,8 +125,31 @@ public class Pdash extends AppCompatActivity
         finish();
     }
 
+    private void createResponseList(final String pIndex){
+        myRef = database.getReference("SH").child(cSHid);;
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+                if(sh.participants.get(Integer.parseInt(pIndex)).isSubmitted()){
+                    ArrayList<Response> rList = sh.generateResponseList(sh.participants.get(Integer.parseInt(pIndex)).getId());
+                    database.getReference().child("CurrentResponses").child(cSHid).child("responses").setValue(rList);
+                    prepareBundleAndFinish(pIndex);
+                }else{
+                    showMessage("No Submissions Available");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+    }
+
     private void makeView(final User model, final View v){
-        database = FirebaseDatabase.getInstance();
         myRef = database.getReference("SH").child(cSHid);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -137,14 +162,14 @@ public class Pdash extends AppCompatActivity
 
                 name.setText(model.getName());
 
-                if(model.responses.size() > 0 ){
-                    if(model.isGraded()){
-                        grade.setText("Score: " + model.getGrade() + " Out of " + sh.getMaxScore());
+                if(sh.responses.size() > 0 ){
+                    if(model.isSubmitted()){
+                        grade.setText("Score: " + model.getNumCorrect() + " Out of " + sh.getMaxScore());
                     }else{
                         grade.setText("Score: Ungraded");
                     }
 
-                    responseSubmitted.setText(model.responses.size() + " Responses");
+                    responseSubmitted.setText(model.getNumResponse() + " Responses");
 
                 }else{
                     grade.setText("");
@@ -245,5 +270,10 @@ public class Pdash extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         updateNavHeader();
+    }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+
     }
 }

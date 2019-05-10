@@ -41,115 +41,53 @@ import java.util.Date;
 public class SHedit extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    FirebaseAuth mAuth;
-    FirebaseUser currentUser ;
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser ;
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
 
     private Button viewQBtn;
-
     private Button deleteBtn;
     private Button saveBtn;
     private Button resultsBtn;
-
-
-    private static final String TAG = "MainActivity";
     private TextView mDisplayDate;
+    private TextView accessCodeTV;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
 
     private EditText descET;
     private EditText titleET;
 
-    private ArrayList shList = new ArrayList<String>();
-    ;
-    private int shCurrentIndex;
-    private SH currentSH;
-
-    String ownerId;
-
-    String eTitle;
-    String eDate;
-    String eDesc;
-
-    String index;
-    String cSHid;
+    private String ownerId;
+    private String eDate;
+    private String index;
+    private String cSHid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shedit);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        database = FirebaseDatabase.getInstance();
+        ownerId = currentUser.getUid();
 
         viewQBtn = findViewById(R.id.viewQBtn);
         deleteBtn = findViewById(R.id.deleteBtn);
         saveBtn = findViewById(R.id.saveBtn);
         resultsBtn = findViewById(R.id.resultsBtn);
-        index = getIntent().getExtras().getString("CurrentIndex");
-        cSHid = getIntent().getExtras().getString("CurrentSHid");
-
-
-
-        mDisplayDate = (TextView) findViewById(R.id.dateTV);
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        updateNavHeader();
-
-
-                //savedInstanceState.getInt("SHIndex");
-
-        //Creation and connection to database
-        database = FirebaseDatabase.getInstance();
-        //myRef = database.getReference("SH");
-        ownerId = currentUser.getUid();
-
+        mDisplayDate = findViewById(R.id.dateTV);
         descET = findViewById(R.id.descET);
         titleET = findViewById(R.id.titleET);
+        accessCodeTV = findViewById(R.id.accessCodeTV);
 
+
+        index = getIntent().getExtras().getString("CurrentIndex");
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
         eDate = "";
 
-        //get user shlist
-
-
-        myRef = database.getReference("SHList").child(ownerId).child(index);
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                //for now change when listView works
-                SH tempSH = dataSnapshot.getValue(SH.class);
-
-                showMessage(tempSH.getTitle());
-
-                if(tempSH.getDescription().isEmpty()) {
-                    descET.setHint("Description is currently Empty");
-                }else{
-                    descET.setHint(tempSH.getDescription());
-                }
-
-                titleET.setHint(tempSH.getTitle());
-
-                mDisplayDate.setText(tempSH.getFormattedEndDate());
-
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
-            }
-        });
+        menuBarSetUp();
+        updateView();
 
         viewQBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -161,7 +99,6 @@ public class SHedit extends AppCompatActivity
         deleteBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 removeSHFromSHList( Integer.parseInt(index));
 
             }
@@ -171,24 +108,19 @@ public class SHedit extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 if(!descET.getText().toString().isEmpty()){
-                    database.getReference("SHList").child(ownerId).child(index).child("description").setValue(descET.getText().toString());
                     database.getReference("SH").child(cSHid).child("description").setValue(descET.getText().toString());
                 }
 
                 if(!titleET.getText().toString().isEmpty()){
-                    database.getReference("SHList").child(ownerId).child(index).child("title").setValue(titleET.getText().toString());
                     database.getReference("SH").child(cSHid).child("title").setValue(titleET.getText().toString());
                 }
 
-                if(eDate != ""){
-                    database.getReference("SHList").child(ownerId).child(index).child("endDate").setValue(eDate);
+                if(!eDate.isEmpty()){
                     database.getReference("SH").child(cSHid).child("endDate").setValue(eDate);
+                    database.getReference("SH").child(cSHid).child("formattedEndDate").setValue(mDisplayDate.getText().toString());
                 }
 
-                database.getReference("SHList").child(ownerId).child(index).child("formattedEndDate").setValue(mDisplayDate.getText().toString());
-                database.getReference("SH").child(cSHid).child("formattedEndDate").setValue(mDisplayDate.getText().toString());
-
-                showMessage("save successful");
+                showMessage("Save Successful");
 
 
             }
@@ -223,12 +155,9 @@ public class SHedit extends AppCompatActivity
             @Override
             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
                 month = month + 1;
-                Log.d(TAG, "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
-
                 Date newDate = new Date(year-1900,month-1,day);
                 SimpleDateFormat formatter = new SimpleDateFormat("MMM dd,yyyy");
                 String date = formatter.format(newDate);
-
                 SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd");
                 eDate = formatter2.format(newDate);
 
@@ -246,17 +175,40 @@ public class SHedit extends AppCompatActivity
         finish();
     }
 
-    private void removeSHFromSHList(final int index) {
-
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(ownerId);
-
+    private void updateView(){
+        myRef = database.getReference("SH").child(cSHid);
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                final ArrayList shList = (ArrayList<SH>) dataSnapshot.getValue();
+                SH currentSH = dataSnapshot.getValue(SH.class);
+
+                if(currentSH.getDescription().isEmpty()) {
+                    descET.setHint("Description is currently Empty");
+                }else{
+                    descET.setHint(currentSH.getDescription());
+                }
+
+                accessCodeTV.setText("Code: " + currentSH.getId());
+                titleET.setHint(currentSH.getTitle());
+                mDisplayDate.setText(currentSH.getFormattedEndDate());
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+    private void removeSHFromSHList(final int index) {
+
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("TList").child(ownerId);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
                 shList.remove(index);
-                database.getReference("SHList").child(ownerId).setValue(shList);
+                database.getReference("TList").child(ownerId).setValue(shList);
                 database.getReference("SH").child(cSHid).removeValue();
                 showMessage("Scavenger Hunt Deleted");
                 Intent intent = new Intent(getApplicationContext(), SHdash.class);
@@ -361,6 +313,19 @@ public class SHedit extends AppCompatActivity
         navUsername.setText(currentUser.getDisplayName());
 
 
+    }
+
+    private void menuBarSetUp() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
     }
 
     private void showMessage(String message) {

@@ -50,88 +50,34 @@ public class SSHdash extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sshdash);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         userId = currentUser.getUid();
 
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SSHList").child(userId);
 
+        menuBarSetUp();
 
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SSHList").child(userId);
+        Query query = FirebaseDatabase.getInstance().getReference().child("SList").child(userId).child("SHmap");
 
-        FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
+        FirebaseListOptions<String> options = new FirebaseListOptions.Builder<String>()
                 .setLayout(R.layout.sh_adapter_view_layout)
                 .setLifecycleOwner(SSHdash.this)
-                .setQuery(query,SH.class)
+                .setQuery(query,String.class)
                 .build();
 
-        adapter = new FirebaseListAdapter<SH>(options) {
+        adapter = new FirebaseListAdapter<String>(options) {
             @Override
-            protected void populateView(View v, SH model, int position) {
-                updateList(model.getId(),position + "",v);
-
-/*
-                SH cSH = (SH) model;
-                String shTitle = cSH.getTitle();
-                String onGoingStatus;
-                String completed;
-
-                //updateList(model.getId(), "" +  position,  v,  model,  position);
-
-                if(cSH.checkOngoing()){
-                    onGoingStatus = "OnGoing";
-                }else{
-                    onGoingStatus = "Ended";
-                }
-
-                if(true){
-                    completed =  "TBA";
-                    //completed =  "Finished and Submitted";
-                }else if (false){
-                    completed =  "Unfinished but Submitted";
-                }else{
-                    completed = "Unfinished";
-                }
-
-                TextView title = (TextView) v.findViewById(R.id.textView1);
-                TextView participants = (TextView) v.findViewById(R.id.textView2);
-                TextView completedStatus = (TextView) v.findViewById(R.id.textView3);
-
-                title.setText(shTitle);
-                participants.setText(onGoingStatus);
-                completedStatus.setText(completed);
-
-                Animation animation = null;
-                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                v.startAnimation(animation);
-
-                */
+            protected void populateView(View v, String model, int position) {
+                updateList(model,v);
 
             }
         };
 
         lv.setAdapter(adapter);
-
-
-        //navi
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        updateNavHeader();
-
-
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
@@ -148,15 +94,13 @@ public class SSHdash extends AppCompatActivity
 
     private void prepareBundleAndFinish( final String index) {
 
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SSHList").child(userId).child(index);
-
+        myRef = database.getReference("SList").child(userId).child("SHmap").child(index);
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                SH sh = dataSnapshot.getValue(SH.class);
+                String sh = dataSnapshot.getValue(String.class);
                 Intent intent = new Intent(getApplicationContext(), SQdash.class);
-                intent.putExtra("CurrentSHid", sh.getId());
+                intent.putExtra("CurrentSHid", sh);
                 intent.putExtra("CurrentIndex", index);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
@@ -171,10 +115,9 @@ public class SSHdash extends AppCompatActivity
 
     }
 
-    private void updateList(final String shId,final String index,final View v){
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SH").child(shId);
+    private void updateList(final String shId,final View v){
 
+        myRef = database.getReference("SH").child(shId);
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -292,5 +235,18 @@ public class SSHdash extends AppCompatActivity
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
 
+    }
+
+    private void menuBarSetUp() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
     }
 }

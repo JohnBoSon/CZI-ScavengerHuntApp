@@ -8,6 +8,19 @@
     tools:context=".Activities.SHedit"
     tools:showIn="@layout/app_bar_shedit">
 
+    <TextView
+        android:id="@+id/accessCodeTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Access Code"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toTopOf="@+id/dateTV"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <Button
         android:id="@+id/saveBtn"
         android:layout_width="136dp"
@@ -115,20 +128,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_begin="259dp" />
+        app:layout_constraintGuide_begin="355dp" />
 
     <TextView
         android:id="@+id/editSHTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
         android:layout_marginBottom="8dp"
-        android:text="Edit"
+        android:text="Scavenger Hunt Info"
         android:textSize="30sp"
-        app:layout_constraintBottom_toTopOf="@+id/dateTV"
+        app:layout_constraintBottom_toTopOf="@+id/accessCodeTV"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

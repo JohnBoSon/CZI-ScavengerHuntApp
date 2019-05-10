@@ -42,7 +42,7 @@ public class SHenter extends AppCompatActivity
     DatabaseReference myRef;
 
     private Button enterBtn;
-private EditText accessCode;
+    private EditText accessCode;
     String userId;
 
 
@@ -54,6 +54,7 @@ private EditText accessCode;
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        database = FirebaseDatabase.getInstance();
         enterBtn = findViewById(R.id.enterBtn);
         userId = currentUser.getUid();
         accessCode = findViewById(R.id.accessET);
@@ -68,7 +69,7 @@ private EditText accessCode;
                     showMessage("Enter an Access Code");
                 }else{
                    findSH(accessCode.getText().toString());
-                    //findSH("-Le9-LKmVWnpVnAZzczX");
+                    findSH("-LeVMCit7Yh82fDLRc_W");
                 }
             }
         });
@@ -172,7 +173,6 @@ private EditText accessCode;
     }
 
     private void findSH(final String eSHid){
-        database = FirebaseDatabase.getInstance();
         myRef = database.getReference("SH").child(eSHid);
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -181,8 +181,6 @@ private EditText accessCode;
 
 
                     SH sh = dataSnapshot.getValue(SH.class);
-
-
                     if(sh.checkOngoing()){
                         boolean exist = false;
 
@@ -231,41 +229,33 @@ private EditText accessCode;
 
     private void addSHList( final String userId, final SH jSH) {
 
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SSHList").child(userId);
+        myRef = database.getReference("SList").child(userId).child("SHmap");
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
-                    GenericTypeIndicator<ArrayList<SH>> t = new GenericTypeIndicator<ArrayList<SH>>() {};
-                    final ArrayList shList = (ArrayList<SH>) dataSnapshot.getValue(t);
+                    GenericTypeIndicator<ArrayList<String>> t = new GenericTypeIndicator<ArrayList<String>>() {};
+                    final ArrayList shList = (ArrayList<String>) dataSnapshot.getValue(t);
                     boolean exist = false;
-                    int eindex = 0;
                     for(int i = 0 ; i < shList.size() ; i++){
                         if(jSH.getId().equals(((SH)shList.get(i)).getId())){
                             exist = true;
-                            eindex = i;
                         }
                     }
                     if(!exist){
-                        shList.add(jSH);
+                        shList.add(jSH.getId());
                         database = FirebaseDatabase.getInstance();
-                        database.getReference("SSHList").child(userId).setValue(shList);
-
+                        database.getReference("SList").child(userId).child("SHmap").setValue(shList);
                         prepareBundleAndFinish(SQdash.class, "" + shList.size(), jSH.getId());
-
                     }else{
                         //showMessage("You are Already in this Scavenger Hunt");
                         //prepareBundleAndFinish(SQdash.class, "" + eindex, jSH.getId());
                     }
                 }else{
-                    final ArrayList shList = new ArrayList<SH>();
-                    shList.add(jSH);
-                    myRef = database.getReference("SSHList").child(userId);
-                    myRef.setValue(shList);
-
+                    final ArrayList shList = new ArrayList<String>();
+                    shList.add(jSH.getId());
+                    database.getReference("SList").child(userId).child("SHmap").setValue(shList);
                     prepareBundleAndFinish(SQdash.class, "" + 0, jSH.getId());
-
                 }
             }
 

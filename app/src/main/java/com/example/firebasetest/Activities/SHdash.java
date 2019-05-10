@@ -39,76 +39,54 @@ import java.util.ArrayList;
 public class SHdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    FirebaseAuth mAuth;
-    FirebaseUser currentUser ;
-    FirebaseDatabase database;
-    DatabaseReference myRef;
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser ;
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
     private Button addBtn;
 
-    ListView mListView;
-    String ownerId;
-
-    //test
-    ListView lv;
-    FirebaseListAdapter adapter;
+    private String ownerId;
+    private ListView lv;
+    private FirebaseListAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shdash);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         ownerId = currentUser.getUid();
+        database = FirebaseDatabase.getInstance();
 
         addBtn = findViewById(R.id.addBtn);
 
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(ownerId);
-
 
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SHList").child(ownerId);
 
-        FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
+        menuBarSetUp();
+
+        Query query = FirebaseDatabase.getInstance().getReference().child("TList").child(ownerId);
+        FirebaseListOptions<String> options = new FirebaseListOptions.Builder<String>()
                     .setLayout(R.layout.sh_adapter_view_layout)
                     .setLifecycleOwner(SHdash.this)
-                    .setQuery(query,SH.class)
+                    .setQuery(query,String.class)
                     .build();
 
-        adapter = new FirebaseListAdapter<SH>(options) {
+        adapter = new FirebaseListAdapter<String>(options) {
             @Override
-            protected void populateView(View v, SH model, int position) {
-                setUpView(model.getId(), v);
-
+            protected void populateView(View v, String id, int position) {
+                setUpView(id, v);
             }
         };
 
         lv.setAdapter(adapter);
 
-
-        //navi
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        updateNavHeader();
-
         addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getApplicationContext(), SHmake.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
-                //addSHList(ownerId);
                 finish();
-
             }
         });
 
@@ -123,8 +101,19 @@ public class SHdash extends AppCompatActivity
         });
 
 
+    }
 
-
+    private void menuBarSetUp() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
     }
 
     private void setUpView(String SHid, final View v){
@@ -171,14 +160,14 @@ public class SHdash extends AppCompatActivity
     private void prepareBundleAndFinish( final String index) {
 
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("SHList").child(ownerId).child(index);
+        myRef = database.getReference("TList").child(ownerId).child(index);
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                SH sh = dataSnapshot.getValue(SH.class);
+                String sh = dataSnapshot.getValue(String.class);
                 Intent intent = new Intent(getApplicationContext(), SHedit.class);
-                intent.putExtra("CurrentSHid", sh.getId());
+                intent.putExtra("CurrentSHid", sh);
                 intent.putExtra("CurrentIndex", index);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);

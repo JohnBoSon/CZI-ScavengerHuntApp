@@ -5,8 +5,9 @@ import java.util.ArrayList;
 public class User {
     private String id;
     private String name;
-    public ArrayList<Response> responses =new ArrayList<>();
-
+    private int numCorrect;
+    private int numResponse;
+    private boolean submitted;
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -15,26 +16,23 @@ public class User {
     public User(String id, String name) {
         this.id = id;
         this.name = name;
+        numCorrect = 0;
+        numResponse = 0;
+        submitted = false;
+
     }
 
-    public int getGrade(){
-        int grade = 0;
-        for(int i = 0; i < responses.size(); i++){
-            if(responses.get(i).isPass()){
-                grade++;
-            }
-        }
-        return grade;
-    }
+    public boolean isSubmitted() { return submitted; }
 
-    public boolean isGraded(){
-        for(int i = 0; i < responses.size(); i++){
-            if(!responses.get(i).isGraded()){
-                return false;
-            }
-        }
-        return true;
-    }
+    public void setSubmitted(boolean submitted) { this.submitted = submitted; }
+
+    public int getNumCorrect() { return numCorrect; }
+
+    public void setNumCorrect(int numCorrect) { this.numCorrect = numCorrect; }
+
+    public int getNumResponse() { return numResponse; }
+
+    public void setNumResponse(int numResponse) { this.numResponse = numResponse; }
 
     public String getId() {
         return id;

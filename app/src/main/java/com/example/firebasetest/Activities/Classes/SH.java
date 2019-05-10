@@ -22,6 +22,8 @@ public class SH {
 
     public ArrayList<Question> questions =new ArrayList<>();
     public ArrayList<User> participants =new ArrayList<>();
+    public ArrayList<Response> responses =new ArrayList<>();
+
 
     public SH() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -37,15 +39,101 @@ public class SH {
         this.endDate = date;
     }
 
+    public int getGrade(){
+        int grade = 0;
+        for(int i = 0; i < responses.size(); i++){
+            if(responses.get(i).isPass()){
+                grade++;
+            }
+        }
+        return grade;
+    }
+
+    public boolean isGraded(){
+        for(int i = 0; i < responses.size(); i++){
+            if(!responses.get(i).isGraded()){
+                return false;
+            }
+        }
+        return true;
+    }
+
     public int getQuestionPosition(String qId){
         int index = -1;
-
         for(int i = 0; i < questions.size();i++){
             if(qId.equals(questions.get(i).getId())){
                 index = i;
             }
         }
         return index;
+    }
+
+    public int findIndexOfResponse(String rId){
+        for(int i =0; i < responses.size();i++){
+            if(responses.get(i).getId().equals(rId)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+    public int findNumCorrectResponse(String replierId){
+        int count = 0;
+
+        for(int i = 0 ; i < responses.size();i++){
+            if(responses.get(i).getReplierId().equals(replierId) && responses.get(i).isPass()){
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int findNumResponse(String replierId){
+        int count = 0;
+
+        for(int i = 0 ; i < responses.size();i++){
+            if(responses.get(i).getReplierId().equals(replierId)){
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public Response findReplierResponse(int qIndex, String replierId){
+        Response r = null;
+        for(int i = 0; i < responses.size(); i++){
+            if(getQuestionPosition(responses.get(i).getQuestionId()) == qIndex && responses.get(i).getReplierId().equals(replierId)){
+                r = responses.get(i);
+            }
+        }
+        return r;
+    }
+
+    public ArrayList<Response> generateResponseList(String replierId){
+        ArrayList<Response> rList = new ArrayList();
+
+        //find responses from replier id
+        for(int n = 0; n < responses.size(); n++){
+            if(responses.get(n).getReplierId().equals(replierId)){
+                rList.add(responses.get(n));
+            }
+        }
+
+        //selection sort
+        for (int i = 0; i < rList.size() - 1; i++) {
+            int index = i;
+            for (int j = i + 1; j < rList.size(); j++) {
+                if (getQuestionPosition(rList.get(j).getQuestionId()) < getQuestionPosition(rList.get(index).getQuestionId())) {
+                    index = j;
+                }
+            }
+            Response smaller = rList.get(index);
+            rList.set(index, rList.get(i));
+            rList.set(i, smaller);
+        }
+
+        return rList;
     }
 
     public boolean checkOngoing(){
@@ -81,17 +169,17 @@ public class SH {
 
     public void removeRespQues(Question q){
         for(int n =0; n < participants.size(); n++){
-            for(int i=0; i<participants.get(n).responses.size(); i++) {
-                Response currentResponse = participants.get(n).responses.get(i);
+            for(int i=0; i< responses.size(); i++) {
+                Response currentResponse = responses.get(i);
                 if(currentResponse.questionId.equals(q.id)) {
-                    participants.get(n).responses.remove(i);
+                    responses.remove(i);
                     i--;
                 }
             }
         }
         questions.remove(questions.indexOf(q));
     }
-
+/*
 
 
     public int ungradedCounter(String QuesId){
@@ -129,7 +217,7 @@ public class SH {
             }
         }
         return countGraded;
-    }
+    }*/
 
 
     public String getEndDate() { return endDate; }

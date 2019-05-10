@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide;
 import com.example.firebasetest.Activities.Beta.UploadGallery;
 import com.example.firebasetest.Activities.Classes.Question;
 import com.example.firebasetest.Activities.Classes.Response;
+import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.Activities.Classes.User;
 import com.example.firebasetest.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -87,6 +88,7 @@ public class SQview extends AppCompatActivity
         qIndex = getIntent().getExtras().getString("CurrentQIndex");
         qType = getIntent().getExtras().getString("CurrentQType");
         qId = getIntent().getExtras().getString("CurrentQid");
+        cUri = "";
 
         saveBtn = findViewById(R.id.saveBtn);
         uploadBtn = findViewById(R.id.uploadBtn);
@@ -101,6 +103,7 @@ public class SQview extends AppCompatActivity
 
         updateViewQ();
         updateViewR();
+        menuBarSetUp();
 
         uploadBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,14 +121,14 @@ public class SQview extends AppCompatActivity
 
                 if (qType.equals("PHOTO")) {
                     if (!cUri.isEmpty()) {
-                        setupSave(qType.equals("PHOTO"));
+                        saveReply(qType.equals("PHOTO"));
 
                     } else {
                         showMessage("Upload a Photo Before Saving");
                     }
                 } else {
                     if (!replyET.getText().toString().isEmpty()) {
-                        setupSave(qType.equals("PHOTO"));
+                        saveReply(qType.equals("PHOTO"));
                     } else {
                         showMessage("Enter all fields");
                     }
@@ -133,98 +136,50 @@ public class SQview extends AppCompatActivity
             }
         });
 
-        menuBarSetUp();
     }
 
-    private void setupSave(final boolean isImage){
-        myRef = database.getReference("SSHList").child(userId).child(index).child("questions");
+
+
+    private void saveReply(final boolean isImage) {
+        myRef = database.getReference("SH").child(cSHid);
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    final ArrayList qList = (ArrayList<Question>) dataSnapshot.getValue();
-                    saveReply(isImage, qList.size());
+                SH checkingSH = dataSnapshot.getValue(SH.class);
+
+                Response cResponse = checkingSH.findReplierResponse(Integer.parseInt(qIndex), userId);
+
+                if (cResponse != null) {
+                    int responseIndex = checkingSH.findIndexOfResponse(cResponse.getId());
+
+                    if(isImage){
+                        cResponse.setReply(cUri);
+
+                    }else{
+                        cResponse.setReply(replyET.getText().toString());
+                    }
+
+                    cResponse.setImage(isImage);
+                    database.getReference("SH").child(cSHid).child("responses").child(""+responseIndex).setValue(cResponse);
+                    showMessage("Save Successful, Changed Reply");
 
                 } else {
-                    saveReply(isImage, 0);
-                }
+                    Response r;
+                    String lastIndex = "" + checkingSH.responses.size();
 
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
-            }
-        });
-    }
-
-    private void saveReply(final boolean isImage, final int qListSize) {
-        myRef = database.getReference("SSHList").child(userId).child(index).child("participants");
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                GenericTypeIndicator<ArrayList<User>> t = new GenericTypeIndicator<ArrayList<User>>() {};
-                ArrayList<User> pList = dataSnapshot.getValue(t);
-                int pIndex = -1;
-                for(int i = 0 ; i< pList.size();i++){
-                    if(pList.get(i).getId().equals(userId)){
-                        pIndex = i;
-                    }
-                }
-
-                if(pIndex == -1){
-                    //user not found in particpants
-                }else{
-                    if (!pList.get(pIndex).responses.isEmpty()) {
-                        ArrayList<Response> rList = pList.get(pIndex).responses;
-                        Response r;
-                        String id;
-
-                        if(rList.get(Integer.parseInt(qIndex)).getId().equals("N/A")){
-                            id = database.getReference("SSHList").child(userId).child(index).child("participants").child(""+pIndex).child("responses").child(qIndex).child("id").push().getKey();
-                        }else{
-                            id = rList.get(Integer.parseInt(qIndex)).getId();
-                        }
-
-
-                        if (isImage) {
-                            r = new Response(cUri, id, userId, isImage, qId);
-                        } else {
-                            r = new Response(replyET.getText().toString(), id, userId, isImage, qId);
-                        }
-                        //showMessage(""+qId.equals(((Response)rList.get(0)).getQuestionId()));
-
-                        rList.set(Integer.parseInt(qIndex), r);
-
-                        pList.get(pIndex).responses = rList;
-                        database.getReference("SSHList").child(userId).child(index).child("participants").setValue(pList);
-
-                        showMessage("Saved 3");
-
+                    if (isImage) {
+                        r = new Response(cUri, "000", userId, isImage, qId);
                     } else {
-                        ArrayList<Response> rList = new ArrayList<>();
-
-                        for(int i = 0 ; i < qListSize; i++){
-                            Response tempR = new Response("N/A", "N/A", "N/A", false, "N/A");
-                            rList.add(tempR);
-                        }
-
-                        Response r;
-
-                        String id = database.getReference("SSHList").child(userId).child(index).child("participants").child(""+pIndex).child("responses").child(qIndex).child("id").push().getKey();
-                        if (isImage) {
-                            r = new Response(cUri, id, userId, isImage, qId);
-                        } else {
-                            r = new Response(replyET.getText().toString(), id, userId, isImage, qId);
-                        }
-                        rList.set(Integer.parseInt(qIndex), r);
-
-                        pList.get(pIndex).responses = rList;
-                        database.getReference("SSHList").child(userId).child(index).child("participants").setValue(pList);
-                        showMessage("Saved 5");
-
-
+                        r = new Response(replyET.getText().toString(), "000", userId, isImage, qId);
                     }
+                    checkingSH.responses.add(r);
+                    database.getReference("SH").child(cSHid).child("responses").setValue(checkingSH.responses);
+                    String id = database.getReference("SH").child(cSHid).child("responses").child(lastIndex).child("id").push().getKey();
+                    database.getReference("SH").child(cSHid).child("responses").child(lastIndex).child("id").setValue(id);
+
+                    showMessage("Saved Successful, First Reply");
                 }
+
             }
 
             @Override
@@ -236,7 +191,6 @@ public class SQview extends AppCompatActivity
 
     private void updateViewQ() {
         myRef = database.getReference("SH").child(cSHid).child("questions").child(qIndex);
-
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -260,52 +214,45 @@ public class SQview extends AppCompatActivity
     }
 
     private void updateViewR() {
-        myRef = database.getReference("SSHList").child(userId).child(index).child("participants");
+        myRef = database.getReference("SH").child(cSHid);
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                GenericTypeIndicator<ArrayList<User>> t = new GenericTypeIndicator<ArrayList<User>>() {};
-                ArrayList<User> pList = dataSnapshot.getValue(t);
-                int pIndex = -1;
-                for(int i = 0 ; i< pList.size();i++){
-                    if(pList.get(i).getId().equals(userId)){
-                        pIndex = i;
-                    }
-                }
+                SH checkingSH = dataSnapshot.getValue(SH.class);
+                Response cResponse = checkingSH.findReplierResponse(Integer.parseInt(qIndex), userId);
 
-                if(pIndex == -1){
-                    //user not found in particpants
-                }else{
-                    if (!pList.get(pIndex).responses.isEmpty()) {
-                    Response r = pList.get(pIndex).responses.get(Integer.parseInt(qIndex));
-
-                        if(qType.equals("TEXT")){
-                            if (r.getReply().equals("N/A")) {
-                                replyET.setHint("Enter Your Answer Here");
-                            } else {
-                                replyET.setHint(r.getReply());
-                            }
-                            imageView.setVisibility(View.GONE);
-                        }else{
-                            if (qType.equals("PHOTO")&& !r.getQuestionId().equals("N/A")) {
-                                Glide.with(imageView.getContext()).load(r.getReply()).into(imageView);
-                            }
-                        }
-
-                        if (!(r.getNote().equals("N/A"))) {
-                            noteTV.setText(r.getNote());
-                        } else {
-                            noteTV.setVisibility(View.GONE);
-                        }
-
-                    } else {
-                        if(qType.equals("TEXT")){
+                if (cResponse!= null) {
+                    if(qType.equals("TEXT")){
+                        if (cResponse.getReply().isEmpty()) {
                             replyET.setHint("Enter Your Answer Here");
-                            imageView.setVisibility(View.GONE);
+                        } else {
+                            replyET.setHint(cResponse.getReply());
                         }
+                        imageView.setVisibility(View.GONE);
+                    }else{
+                        //PHOTO
+                        if (qType.equals("PHOTO")&& !cResponse.getQuestionId().isEmpty()) {
+                            Glide.with(imageView.getContext()).load(cResponse.getReply()).into(imageView);
+                        }
+                        replyET.setVisibility(View.GONE);
+                    }
+
+                    if (!(cResponse.getNote().isEmpty())) {
+                        noteTV.setText(cResponse.getNote());
+                    } else {
                         noteTV.setVisibility(View.GONE);
                     }
+                } else {
+                    //No Previous Response
+                    if(qType.equals("TEXT")){
+                        replyET.setHint("Enter Your Answer Here");
+                        imageView.setVisibility(View.GONE);
+                    }else{
+                        replyET.setVisibility(View.GONE);
+                    }
+                    noteTV.setVisibility(View.GONE);
                 }
+
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
