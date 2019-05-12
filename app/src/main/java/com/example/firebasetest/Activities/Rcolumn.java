@@ -25,81 +25,97 @@ import com.anychart.enums.Anchor;
 import com.anychart.enums.HoverMode;
 import com.anychart.enums.Position;
 import com.anychart.enums.TooltipPositionMode;
+import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Rcolumn extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+
     FirebaseAuth mAuth;
-    FirebaseUser currentUser ;
+    FirebaseUser currentUser;
+    FirebaseDatabase database;
+    DatabaseReference myRef;
+
+    String cSHid;
+
+    AnyChartView anyChartView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_home2);
-        setContentView(R.layout.activity_chart_common);
-
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_home2);
+        //setContentView(R.layout.activity_chart_common);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        database = FirebaseDatabase.getInstance();
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        updateNavHeader();
 
-        AnyChartView anyChartView = findViewById(R.id.any_chart_view);
-        anyChartView.setProgressBar(findViewById(R.id.progress_bar));
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
 
-        Cartesian cartesian = AnyChart.column();
+        menuBarSetUp();
 
-        List<DataEntry> data = new ArrayList<>();
-        data.add(new ValueDataEntry("Rouge", 80540));
-        data.add(new ValueDataEntry("Foundation", 94190));
-        data.add(new ValueDataEntry("Mascara", 102610));
-        data.add(new ValueDataEntry("Lip gloss", 110430));
-        data.add(new ValueDataEntry("Lipstick", 128000));
-        data.add(new ValueDataEntry("Nail polish", 143760));
-        data.add(new ValueDataEntry("Eyebrow pencil", 170670));
-        data.add(new ValueDataEntry("Eyeliner", 213210));
-        data.add(new ValueDataEntry("Eyeshadows", 249980));
+        anyChartView = findViewById(R.id.any_chart_view);
 
-        Column column = cartesian.column(data);
 
-        column.tooltip()
-                .titleFormat("{%X}")
-                .position(Position.CENTER_BOTTOM)
-                .anchor(Anchor.CENTER_BOTTOM)
-                .offsetX(0d)
-                .offsetY(5d)
-                .format("${%Value}{groupsSeparator: }");
+        loadData();
 
-        cartesian.animation(true);
-        cartesian.title("Top 10 Cosmetic Products by Revenue");
+    }
 
-        cartesian.yScale().minimum(0d);
+    private void loadData(){
+        myRef = database.getReference("SH").child(cSHid);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+                Cartesian cartesian = AnyChart.column();
 
-        cartesian.yAxis(0).labels().format("${%Value}{groupsSeparator: }");
+                List<DataEntry> data = sh.columnData();
 
-        cartesian.tooltip().positionMode(TooltipPositionMode.POINT);
-        cartesian.interactivity().hoverMode(HoverMode.BY_X);
+                Column column = cartesian.column(data);
 
-        cartesian.xAxis(0).title("Product");
-        cartesian.yAxis(0).title("Revenue");
+                column.tooltip()
+                        .titleFormat("{%X}")
+                        .position(Position.CENTER_BOTTOM)
+                        .anchor(Anchor.CENTER_BOTTOM)
+                        .offsetX(0d)
+                        .offsetY(5d)
+                        .format("{%Value}{groupsSeparator: }");
 
-        anyChartView.setChart(cartesian);
+                cartesian.animation(true);
+                cartesian.title("Number of Correct Answer for Each Question");
 
+                cartesian.yScale().minimum(0d);
+
+                cartesian.yAxis(0).labels().format("${%Value}{groupsSeparator: }");
+
+                cartesian.tooltip().positionMode(TooltipPositionMode.POINT);
+                cartesian.interactivity().hoverMode(HoverMode.BY_X);
+
+                cartesian.xAxis(0).title("Questions");
+                cartesian.yAxis(0).title("Number of Correct Responses");
+
+                anyChartView.setChart(cartesian);
+                anyChartView.setProgressBar(findViewById(R.id.progress_bar));
+
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
     }
 
     @Override
@@ -158,6 +174,19 @@ public class Rcolumn extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void menuBarSetUp() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
     }
 
     public void updateNavHeader() {

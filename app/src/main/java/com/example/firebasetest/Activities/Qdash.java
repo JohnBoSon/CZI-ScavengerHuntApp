@@ -85,7 +85,7 @@ public class Qdash extends AppCompatActivity
             protected void populateView(View v, SH model, int position) {
                 TextView title = (TextView) v.findViewById(R.id.textView1);
 
-                title.setText("Question " + position + 1);
+                title.setText("Question " + (position + 1));
 
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);

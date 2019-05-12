@@ -64,6 +64,8 @@ public class SQview extends AppCompatActivity
     TextView questionTV;
     TextView titleTV;
     TextView noteTV;
+    private TextView qnumtitleTV;
+
 
     String index;
     String cSHid;
@@ -97,6 +99,8 @@ public class SQview extends AppCompatActivity
         questionTV = findViewById(R.id.questionTV);
         titleTV = findViewById(R.id.titleTV);
         noteTV = findViewById(R.id.noteTV);
+        qnumtitleTV = findViewById(R.id.qnumtitleTV);
+
 
         mProgressDialog = new ProgressDialog(this);
         storage = FirebaseStorage.getInstance().getReference();
@@ -204,6 +208,8 @@ public class SQview extends AppCompatActivity
                 }else{
                     replyET.setVisibility(View.GONE);
                 }
+
+                qnumtitleTV.setText("Question " + (Integer.parseInt(qIndex) + 1));
 
                 titleTV.setText(q.getTitle());
 

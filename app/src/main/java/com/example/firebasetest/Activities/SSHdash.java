@@ -196,7 +196,7 @@ public class SSHdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
 
             startActivity(SSH);
 

@@ -45,7 +45,6 @@ public class SHenter extends AppCompatActivity
     private EditText accessCode;
     String userId;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +68,7 @@ public class SHenter extends AppCompatActivity
                     showMessage("Enter an Access Code");
                 }else{
                    //findSH(accessCode.getText().toString());
-                    findSH("-LeYRO6YgAzsw2KrrLI_");
+                    findSH("-LeZQRs92Jknnp6OpuFO");
                 }
             }
         });
@@ -237,14 +236,15 @@ public class SHenter extends AppCompatActivity
                     GenericTypeIndicator<ArrayList<String>> t = new GenericTypeIndicator<ArrayList<String>>() {};
                     final ArrayList shList = (ArrayList<String>) dataSnapshot.getValue(t);
                     boolean exist = false;
+
                     for(int i = 0 ; i < shList.size() ; i++){
-                        if(jSH.getId().equals(((SH)shList.get(i)).getId())){
+                        if(jSH.getId().equals(shList.get(i))){
                             exist = true;
                         }
                     }
+
                     if(!exist){
                         shList.add(jSH.getId());
-                        database = FirebaseDatabase.getInstance();
                         database.getReference("SList").child(userId).child("SHmap").setValue(shList);
                         database.getReference("SH").child(jSH.getId()).child("participants").child(pIndex).child("sListIndex").setValue(shList.size()-1);
 

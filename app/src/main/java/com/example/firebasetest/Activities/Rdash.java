@@ -114,9 +114,9 @@ public class Rdash extends AppCompatActivity
 
                 TextView title = (TextView) v.findViewById(R.id.textView1);
                 if(model.isGraded()){
-                    title.setText("Question " + sh.getQuestionPosition(model.getQuestionId()) + 1 + " Graded");
+                    title.setText("Question " + (sh.getQuestionPosition(model.getQuestionId()) + 1) + " Graded");
                 }else {
-                    title.setText("Question " + sh.getQuestionPosition(model.getQuestionId()) + 1 + " Ungraded");
+                    title.setText("Question " + (sh.getQuestionPosition(model.getQuestionId()) + 1) + " Ungraded");
                 }
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);

@@ -177,6 +177,7 @@ public class Rview extends AppCompatActivity
             }
         });
 
+
     }
 
     private void setUpView(){
@@ -188,7 +189,9 @@ public class Rview extends AppCompatActivity
                 SH sh = dataSnapshot.getValue(SH.class);
                 int qIndex = sh.getQuestionPosition(sh.responses.get(Integer.parseInt(rIndex)).getQuestionId());
 
-                questionTV.setText("Question " + qIndex);
+                showMessage(qIndex + "");
+
+                questionTV.setText("Question " + (qIndex + 1));
                 titleTV.setText(sh.questions.get(qIndex).getTitle());
                 replierNameTV.setText(sh.participants.get(Integer.parseInt(pIndex)).getName());
 

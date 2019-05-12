@@ -193,14 +193,14 @@ public class Qview extends AppCompatActivity
 
                     }
 
-                    qnumtitleTV.setText("Question " + Integer.parseInt(qIndex) + 1);
+                    qnumtitleTV.setText("Question " + (Integer.parseInt(qIndex) + 1));
 
                 }else{
                     descET.setHint("Enter Description");
                     titleET.setHint("Enter Title");
                     photoTB.setChecked(false);
                     textTB.setChecked(false);
-                    qnumtitleTV.setText("Question " + Integer.parseInt(qIndex) + 1);
+                    qnumtitleTV.setText("Question " + (Integer.parseInt(qIndex) + 1));
                 }
             }
             @Override

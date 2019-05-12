@@ -105,14 +105,39 @@ public class Pdash extends AppCompatActivity
         statsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), Rcloud.class);
+                intent.putExtra("CurrentSHid", cSHid);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
             }
         });
 
         qGradeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                generatefakes();
             }
         });
+    }
+
+    private void generatefakes(){
+        myRef = database.getReference("SH").child(cSHid);;
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+                sh.generateGradedFakeData(20);
+                database.getReference("SH").child(cSHid).setValue(sh);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
     }
 
     private void prepareBundleAndFinish( final String pIndex) {

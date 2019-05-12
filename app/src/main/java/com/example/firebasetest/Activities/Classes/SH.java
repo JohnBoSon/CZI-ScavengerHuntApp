@@ -1,4 +1,7 @@
 package com.example.firebasetest.Activities.Classes;
+import com.anychart.chart.common.dataentry.CategoryValueDataEntry;
+import com.anychart.chart.common.dataentry.DataEntry;
+import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.lang.reflect.Array;
@@ -6,6 +9,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class SH {
 
@@ -39,6 +45,106 @@ public class SH {
         this.endDate = date;
     }
 
+    //getting ride of articles to make word cloud better
+    public boolean badData(String word){
+        boolean isBadData = false;
+        switch (word) {
+            case "a": isBadData =true;
+                break;
+            case "in": isBadData =true;
+                break;
+            case "the": isBadData =true;
+                break;
+            case "on": isBadData =true;
+                break;
+            case "an": isBadData =true;
+                break;
+            case "it": isBadData =true;
+                break;
+            case "this": isBadData =true;
+                break;
+            case "that": isBadData =true;
+                break;
+            case "my": isBadData =true;
+                break;
+            case "it's": isBadData =true;
+                break;
+            case "to": isBadData =true;
+                break;
+            case "i": isBadData =true;
+                break;
+            default:
+                break;
+        }
+
+        return isBadData;
+    }
+
+    public ArrayList<String> getWords(int qIndex) {
+        ArrayList<String> words = new ArrayList<>();
+            for(int m = 0; m < responses.size(); m++){
+                if(responses.get(m).getQuestionId().equals(questions.get(qIndex).getId()) && responses.get(m).isGraded()){
+                    String[] splited = responses.get(m).getReply().toLowerCase().split("\\s+");
+                    for(int n = 0; n < splited.length; n++){
+                        if(!badData(splited[n])){
+                            words.add(splited[n]);
+                        }
+                    }
+                }
+            }
+        return words;
+    }
+
+    public int getFrequency(int qIndex, String word){
+        int count = 0 ;
+        ArrayList<String> words = getWords(qIndex);
+        for(int i  = 0; i < words.size(); i++){
+            if(words.get(i).equals(word)){
+                count++;
+            }
+
+        }
+
+
+        return count;
+    }
+
+    public List <DataEntry> cloudData() {
+        List<DataEntry> data = new ArrayList<>();
+        for(int n = 0; n < questions.size(); n++){
+            ArrayList<String> words = getWords(n);
+
+            //remove duplicates
+            Set<String> set = new HashSet<>(words);
+            words.clear();
+            words.addAll(set);
+
+            for(int m = 0; m < words.size(); m++){
+                data.add(new CategoryValueDataEntry(words.get(m), "Q" + (n + 1), getFrequency(n, words.get(m))));
+
+            }
+        }
+        return data;
+    }
+
+
+    public List<DataEntry> columnData(){
+        List<DataEntry> data = new ArrayList<>();
+
+        for(int n = 0; n < questions.size(); n++){
+            int count = 0;
+            for(int m = 0; m < responses.size(); m++){
+                if(responses.get(m).getQuestionId().equals(questions.get(n).getId()) && responses.get(m).isPass()){
+                    count++;
+                    data.add(new ValueDataEntry("Question " + (n+1), count));
+                }
+            }
+        }
+
+        return data;
+    }
+
+
     public int getGrade(){
         int grade = 0;
         for(int i = 0; i < responses.size(); i++){
@@ -47,6 +153,72 @@ public class SH {
             }
         }
         return grade;
+    }
+
+    public String randomWordGenerater(){
+        int max = 90;
+        int min = 65;
+        int random1 = (int )(Math.random() * max + min);
+        int random2 = (int )(Math.random() * max + min);
+
+        String word = Character.toString((char)random1) + "ytho"; //+ Character.toString((char)random2);
+
+        return word;
+    }
+
+    public void generateFakeData(int nP){
+        participants.clear();
+        responses.clear();
+
+        for(int i = 0 ; i < nP;i++){
+            User u = new User( + i + "fake", "la-a the " + i);
+            u.setSubmitted(true);
+            participants.add(u);
+            int countR = 0;
+            for(int n = 0 ; n < questions.size(); n++){
+                if(questions.get(n).getReplyType().equals("TEXT")) {
+                    Response r = new Response(randomWordGenerater(), i + "" + n + "" + randomWordGenerater(), participants.get(i).getId(), false, questions.get(n).getId());
+                    responses.add(r);
+                    participants.get(i).setNumResponse(++countR);
+
+                }
+            }
+        }
+    }
+
+    public void generateGradedFakeData(int nP){
+        participants.clear();
+        responses.clear();
+
+        for(int i = 0 ; i < nP;i++){
+            User u = new User( + i + "fake", "la-a the " + i);
+            u.setSubmitted(true);
+            participants.add(u);
+            int countR = 0;
+            for(int n = 0 ; n < questions.size(); n++){
+                if(questions.get(n).getReplyType().equals("TEXT")) {
+                    Response r = new Response(randomWordGenerater(), i + "" + n + "" + randomWordGenerater(), participants.get(i).getId(), false, questions.get(n).getId());
+                    r.setGraded(true);
+                    responses.add(r);
+                    participants.get(i).setNumResponse(++countR);
+
+                }
+            }
+        }
+    }
+
+    public ArrayList<Response> generateSwipeList(String qId){
+        ArrayList<Response> rList = new ArrayList<>();
+        for(int n = 0 ; n < responses.size(); n++){
+            if(responses.get(n).getQuestionId().equals(qId) && !responses.get(n).isGraded() ){
+                for(int i = 0 ; i < participants.size(); i++){
+                    if(participants.get(i).getId().equals(responses.get(n).getReplierId()) && participants.get(i).isSubmitted()){
+                        rList.add(responses.get(n));
+                    }
+                }
+            }
+        }
+        return rList;
     }
 
     public boolean isGraded(){
