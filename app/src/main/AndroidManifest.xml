@@ -12,9 +12,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".Activities.Rswipe"
+            android:label="@string/title_activity_rswipe"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".Activities.RQdash"
+            android:label="@string/title_activity_rqdash"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".Activities.Rcloud"
             android:label="@string/title_activity_rcloud"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Activities.Rcolumn"
             android:label="@string/title_activity_rcolumn"

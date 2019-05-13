@@ -156,12 +156,12 @@ public class SH {
     }
 
     public String randomWordGenerater(){
-        int max = 90;
-        int min = 65;
+        int max = 80;
+        int min = 61;
         int random1 = (int )(Math.random() * max + min);
         int random2 = (int )(Math.random() * max + min);
 
-        String word = Character.toString((char)random1) + "ytho"; //+ Character.toString((char)random2);
+        String word = Character.toString((char)random1) + "ython"; //+ Character.toString((char)random2);
 
         return word;
     }

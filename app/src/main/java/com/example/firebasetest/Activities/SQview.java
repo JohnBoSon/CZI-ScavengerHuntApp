@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -74,6 +75,9 @@ public class SQview extends AppCompatActivity
     String userId;
     String qType;
     String cUri;
+
+    NavigationView navigationView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -271,6 +275,8 @@ public class SQview extends AppCompatActivity
     }
 
     private void menuBarSetUp() {
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -278,9 +284,38 @@ public class SQview extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        checkAccountType();
         updateNavHeader();
+
+
+    }
+
+    private void checkAccountType() {
+        myRef = database.getReference("User").child(userId).child("accountType");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String checking = dataSnapshot.getValue(String.class);
+                if(checking.equals("TEACHER")){
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item2 = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item2.setEnabled(false);
+                    nav_item2.setVisible(false);
+                }else{
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item2 = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item2.setEnabled(false);
+                    nav_item2.setVisible(false);
+                }
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
     }
 
     @Override

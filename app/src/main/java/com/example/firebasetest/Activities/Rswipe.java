@@ -2,7 +2,8 @@ package com.example.firebasetest.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,17 +13,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.example.firebasetest.Activities.Beta.Swipe;
 import com.example.firebasetest.Activities.Classes.Response;
 import com.example.firebasetest.Activities.Classes.SH;
-import com.example.firebasetest.Activities.Classes.User;
 import com.example.firebasetest.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
@@ -32,200 +32,193 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 
 import java.util.ArrayList;
 
-
-public class Pdash extends AppCompatActivity
+public class Rswipe extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    private Button counterB;
+    SwipeFlingAdapterView flingContainer;
 
     FirebaseAuth mAuth;
-    FirebaseUser currentUser ;
+    FirebaseUser currentUser;
     FirebaseDatabase database;
     DatabaseReference myRef;
-    ListView lv;
     FirebaseListAdapter adapter;
-    String index;
+
     String cSHid;
     String ownerId;
+    String rqId;
+    String index;
 
-    private Button statsBtn;
-    private Button qGradeBtn;
-
+    Boolean accepted = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_pdash);
-
-        qGradeBtn = (Button) findViewById(R.id.qGradeBtn);
-        statsBtn = (Button) findViewById(R.id.statsBtn);
-
+        setContentView(R.layout.activity_rswipe);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
-        ownerId = currentUser.getUid();
         database = FirebaseDatabase.getInstance();
+        ownerId = currentUser.getUid();
 
         index = getIntent().getExtras().getString("CurrentIndex");
         cSHid = getIntent().getExtras().getString("CurrentSHid");
+        rqId = getIntent().getExtras().getString("CurrentRQId");;
+
+        counterB = findViewById(R.id.swipeBack);
+
+        makeSwipeList();
+        flingContainer = findViewById(R.id.frame);
 
 
-        menuBarSetUp();
+        flingContainer = findViewById(R.id.frame);
+        counterB = findViewById(R.id.CounterBtn);
 
-        lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SH").child(cSHid).child("participants");
 
-        FirebaseListOptions<User> options = new FirebaseListOptions.Builder<User>()
-                .setLayout(R.layout.sh_adapter_view_layout)
-                .setLifecycleOwner(Pdash.this)
-                .setQuery(query,User.class)
+        Query query = FirebaseDatabase.getInstance().getReference("swipe").child(cSHid);
+        FirebaseListOptions<Response> options = new FirebaseListOptions.Builder<Response>()
+                .setLayout(R.layout.item)
+                .setLifecycleOwner(Rswipe.this)
+                .setQuery(query, Response.class)
                 .build();
-
-        adapter = new FirebaseListAdapter<User>(options) {
+        adapter = new FirebaseListAdapter<Response>(options) {
             @Override
-            protected void populateView(View v, User model, int position) {
-                makeView(model,v);
+            protected void populateView(View v, Response model, int position) {
+                TextView title = (TextView) v.findViewById(R.id.textTV);
+                ImageView image = (ImageView) v.findViewById(R.id.imageV);
+                if(model.isImage()){
+                    Glide.with(image.getContext()).load(model.getReply()).into(image);
+                }else {
+                    title.setText(model.getReply());
+                }
             }
         };
 
-        lv.setAdapter(adapter);
-
-
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        flingContainer.setAdapter(adapter);
+        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int pIndex, long l) {
-                Toast.makeText(Pdash.this, "Clicked "+ pIndex, Toast.LENGTH_SHORT).show();
-                createResponseList("" + pIndex);
-            }
-        });
-
-        statsBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //Intent intent = new Intent(getApplicationContext(), Rcloud.class);
-                Intent intent = new Intent(getApplicationContext(), Rcolumn.class);
-
-                intent.putExtra("CurrentSHid", cSHid);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);
-                finish();
-            }
-        });
-
-        qGradeBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                generatefakes();
-                Intent intent = new Intent(getApplicationContext(), RQdash.class);
-                intent.putExtra("CurrentSHid", cSHid);
-                intent.putExtra("CurrentIndex", index);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);
-                finish();
-            }
-        });
-    }
-
-    private void generatefakes(){
-        myRef = database.getReference("SH").child(cSHid);;
-
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                SH sh = dataSnapshot.getValue(SH.class);
-                //sh.generateGradedFakeData(300);
-                sh.generateFakeData(10);
-
-                database.getReference("SH").child(cSHid).setValue(sh);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
-            }
-        });
-
-    }
-
-    private void prepareBundleAndFinish( final String pIndex) {
-        Intent intent = new Intent(getApplicationContext(), Rdash.class);
-        intent.putExtra("CurrentSHid", cSHid);
-        intent.putExtra("CurrentPIndex", pIndex);
-        intent.putExtra("CurrentIndex", index);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(intent);
-        finish();
-    }
-
-    private void createResponseList(final String pIndex){
-        myRef = database.getReference("SH").child(cSHid);;
-
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                SH sh = dataSnapshot.getValue(SH.class);
-                if(sh.participants.get(Integer.parseInt(pIndex)).isSubmitted()){
-                    ArrayList<Response> rList = sh.generateResponseList(sh.participants.get(Integer.parseInt(pIndex)).getId());
-                    database.getReference().child("CurrentResponses").child(cSHid).child("responses").setValue(rList);
-                    prepareBundleAndFinish(pIndex);
-                }else{
-                    showMessage("No Submissions Available");
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
-            }
-        });
-
-    }
-
-    private void makeView(final User model, final View v){
-        myRef = database.getReference("SH").child(cSHid);
-
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                SH sh = dataSnapshot.getValue(SH.class);
-                TextView name = (TextView) v.findViewById(R.id.textView1);
-                TextView grade = (TextView) v.findViewById(R.id.textView2);
-                TextView responseSubmitted = (TextView) v.findViewById(R.id.textView3);
-
-                name.setText(model.getName());
-
-                if(sh.responses.size() > 0 ){
-                    if(model.isSubmitted()){
-                        grade.setText("Score: " + model.getNumCorrect() + " Out of " + sh.getMaxScore());
-                    }else{
-                        grade.setText("Score: Ungraded");
+            public void removeFirstObjectInAdapter() {
+                myRef = database.getReference("swipe").child(cSHid);
+                myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        GenericTypeIndicator<ArrayList<Response>> t = new GenericTypeIndicator<ArrayList<Response>>() {};
+                        ArrayList<Response> rList = dataSnapshot.getValue(t);
+                        rList.remove(0);
+                        database.getReference("swipe").child(cSHid).setValue(rList);
+                        counterB.setText("Responses Left: " + rList.size());
                     }
-
-                    responseSubmitted.setText(model.getNumResponse() + " Responses");
-
-                }else{
-                    grade.setText("");
-                    responseSubmitted.setText("No Responses");
-                }
-
-                Animation animation = null;
-                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                v.startAnimation(animation);
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        System.out.println("The read failed: " + databaseError.getCode());
+                    }
+                });
             }
 
+            @Override
+            public void onLeftCardExit(Object dataObject) {
+                Toast.makeText(Rswipe.this, "Left" + accepted + ((Response)dataObject).getReply(), Toast.LENGTH_SHORT).show();
+                saveGrade(((Response)dataObject), false);
+
+            }
+
+            @Override
+            public void onRightCardExit(Object dataObject) {
+                Toast.makeText(getApplicationContext(), "Right" + accepted, Toast.LENGTH_SHORT).show();
+                saveGrade(((Response)dataObject), true);
+            }
+
+            @Override
+            public void onAdapterAboutToEmpty(int itemsInAdapter) {
+
+            }
+
+            @Override
+            public void onScroll(float scrollProgressPercent) {
+            }
+        });
+
+
+        counterB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClicked(int itemPosition, Object dataObject) {
+                Toast.makeText(Rswipe.this, "Clicked", Toast.LENGTH_SHORT);
+
+            }
+        });
+
+    }
+
+    private void makeSwipeList(){
+        myRef = database.getReference("SH").child(cSHid);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+                database.getReference("swipe").child(cSHid).setValue(sh.generateSwipeList(rqId));
+
+                counterB.setText("Responses Left: " + sh.generateSwipeList(rqId).size());
+
+
+            }
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 System.out.println("The read failed: " + databaseError.getCode());
             }
         });
     }
+
+    private void saveGrade(final Response r, final boolean passed){
+        myRef = database.getReference("SH").child(cSHid);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+
+                r.setGraded(true);
+                r.setPass(passed);
+
+                for(int i = 0; i < sh.responses.size(); i++){
+                    if(sh.responses.get(i).getId().equals(r.getId())){
+                        sh.responses.set(i,r);
+                    }
+                }
+
+                for(int i = 0; i < sh.participants.size(); i++){
+                    if(sh.participants.get(i).getId().equals(r.getReplierId())){
+
+                        sh.participants.get(i).setNumCorrect(sh.findNumCorrectResponse(sh.participants.get(i).getId()));
+                    }
+                }
+                database.getReference("SH").child(cSHid).setValue(sh);
+
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+
 
     @Override
     public void onBackPressed() {
-        Intent intent = new Intent(getApplicationContext(), SHedit.class);
+        Intent intent = new Intent(getApplicationContext(), RQdash.class);
         intent.putExtra("CurrentSHid", cSHid);
         intent.putExtra("CurrentIndex", index);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -254,8 +247,9 @@ public class Pdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
-            startActivity(Swipe);
+            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+
+            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 
@@ -285,13 +279,10 @@ public class Pdash extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
-
         TextView navUsername = headerView.findViewById(R.id.nav_username);
         TextView navUserMail = headerView.findViewById(R.id.nav_user_mail);
-
         navUserMail.setText(currentUser.getEmail());
         navUsername.setText(currentUser.getDisplayName());
-
     }
 
     private void menuBarSetUp(){
@@ -309,6 +300,5 @@ public class Pdash extends AppCompatActivity
 
     private void showMessage(String message) {
         Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
-
     }
 }

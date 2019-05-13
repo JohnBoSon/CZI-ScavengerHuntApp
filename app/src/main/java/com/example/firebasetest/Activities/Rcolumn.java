@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.anychart.AnyChart;
@@ -50,16 +51,21 @@ public class Rcolumn extends AppCompatActivity
     String cSHid;
 
     AnyChartView anyChartView;
+    Button nextBtn;
+    TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home2);
-        //setContentView(R.layout.activity_chart_common);
+        //setContentView(R.layout.activity_home2);
+        setContentView(R.layout.activity_rcolumn);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
+
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
+
 
 
         cSHid = getIntent().getExtras().getString("CurrentSHid");
@@ -68,6 +74,23 @@ public class Rcolumn extends AppCompatActivity
 
         anyChartView = findViewById(R.id.any_chart_view);
 
+        textView = findViewById(R.id.textView);
+
+        textView.setVisibility(View.GONE);
+
+
+        nextBtn = findViewById(R.id.nextBtn);
+        nextBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), Rcloud.class);
+
+                intent.putExtra("CurrentSHid", cSHid);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
+            }
+        });
 
         loadData();
 
@@ -82,6 +105,10 @@ public class Rcolumn extends AppCompatActivity
                 Cartesian cartesian = AnyChart.column();
 
                 List<DataEntry> data = sh.columnData();
+
+                if(data.size() == 0){
+                    textView.setVisibility(View.VISIBLE);
+                }
 
                 Column column = cartesian.column(data);
 

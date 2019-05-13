@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.anychart.AnyChart;
@@ -52,22 +53,44 @@ public class Rcloud extends AppCompatActivity
     String cSHid;
 
     AnyChartView anyChartView;
+    Button nextBtn;
+
+    TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home2);
-        //setContentView(R.layout.activity_chart_common);
+        //setContentView(R.layout.activity_home2);
+        setContentView(R.layout.activity_rcloud);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
 
         anyChartView = findViewById(R.id.any_chart_view);
-
+        nextBtn = findViewById(R.id.nextBtn);
+        textView = findViewById(R.id.textView);
         cSHid = getIntent().getExtras().getString("CurrentSHid");
+
+        textView.setVisibility(View.GONE);
+
+
         menuBarSetUp();
         loadData();
+
+
+
+        nextBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), Rcolumn.class);
+
+                intent.putExtra("CurrentSHid", cSHid);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
+            }
+        });
 
     }
 
@@ -82,7 +105,7 @@ public class Rcloud extends AppCompatActivity
 
                 TagCloud tagCloud = AnyChart.tagCloud();
 
-                tagCloud.title("All Text Replies Cloud");
+                tagCloud.title("All Replies from Event");
 
                 OrdinalColor ordinalColor = OrdinalColor.instantiate();
                 ordinalColor.colors(new String[] {
@@ -97,6 +120,10 @@ public class Rcloud extends AppCompatActivity
                 List<DataEntry> data = sh.cloudData();
 
                 tagCloud.data(data);
+
+                if(data.size() == 0){
+                    textView.setVisibility(View.VISIBLE);
+                }
 
                 anyChartView.setChart(tagCloud);
 

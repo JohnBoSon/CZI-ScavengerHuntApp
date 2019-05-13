@@ -1,3 +1,5 @@
+
+
 package com.example.firebasetest.Activities;
 
 import android.content.Intent;
@@ -18,7 +20,6 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,136 +36,97 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-public class SSHdash extends AppCompatActivity
+import java.util.ArrayList;
+
+public class RQdash extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+
     FirebaseAuth mAuth;
     FirebaseUser currentUser ;
     FirebaseDatabase database;
     DatabaseReference myRef;
-    String userId;
 
-    //test
+    String ownerId;
+
     ListView lv;
     FirebaseListAdapter adapter;
 
-    ProgressBar bar;
+    String index;
+    String cSHid;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sshdash);
-
-
+        setContentView(R.layout.activity_rqdash);
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
-        userId = currentUser.getUid();
-
+        ownerId = currentUser.getUid();
         database = FirebaseDatabase.getInstance();
 
-        bar = findViewById(R.id.progress_bar);
+        index = getIntent().getExtras().getString("CurrentIndex");
+        cSHid = getIntent().getExtras().getString("CurrentSHid");
 
-        menuBarSetUp();
 
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SList").child(userId).child("SHmap");
 
-        FirebaseListOptions<String> options = new FirebaseListOptions.Builder<String>()
-                .setLayout(R.layout.sh_adapter_view_layout)
-                .setLifecycleOwner(SSHdash.this)
-                .setQuery(query,String.class)
-                .build();
-
-        adapter = new FirebaseListAdapter<String>(options) {
-            @Override
-            protected void populateView(View v, String model, int position) {
-                updateList(model,v);
-
-            }
-        };
-
-        lv.setAdapter(adapter);
+        setupListView();
+        menuBarSetUp();
 
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                Toast.makeText(SSHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
-                prepareBundleAndFinish(index+"");
+            public void onItemClick(AdapterView<?> adapterView, View view, int qIndex, long l) {
+                prepareBundleAndFinish(qIndex + "");
+
             }
         });
 
 
-
-
     }
 
-    private void prepareBundleAndFinish( final String index) {
 
-        myRef = database.getReference("SList").child(userId).child("SHmap").child(index);
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+
+    private void setupListView(){
+        Query query = FirebaseDatabase.getInstance().getReference("SH").child(cSHid).child("questions");
+        FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
+                .setLayout(R.layout.adapter_question_view)
+                .setLifecycleOwner(RQdash.this)
+                .setQuery(query,SH.class)
+                .build();
+
+        adapter = new FirebaseListAdapter<SH>(options) {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String sh = dataSnapshot.getValue(String.class);
-                Intent intent = new Intent(getApplicationContext(), SQdash.class);
-                intent.putExtra("CurrentSHid", sh);
-                intent.putExtra("CurrentIndex", index);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);
-                finish();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
-            }
-        });
-
-    }
-
-    private void updateList(final String shId,final View v){
-
-        myRef = database.getReference("SH").child(shId);
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                SH cSH = dataSnapshot.getValue(SH.class);
-
-                String shTitle = cSH.getTitle();
-                String onGoingStatus;
-                String completed;
-
-                if(cSH.checkOngoing()){
-                    onGoingStatus = "OnGoing";
-                }else{
-                    onGoingStatus = "Ended";
-                }
-
-                if(true){
-                    completed =  "TBA";
-                    //completed =  "Finished and Submitted";
-                }else if (false){
-                    completed =  "Unfinished but Submitted";
-                }else{
-                    completed = "Unfinished";
-                }
-
+            protected void populateView(View v, SH model, int position) {
                 TextView title = (TextView) v.findViewById(R.id.textView1);
-                TextView participants = (TextView) v.findViewById(R.id.textView2);
-                TextView completedStatus = (TextView) v.findViewById(R.id.textView3);
 
-                title.setText(shTitle);
-                participants.setText(onGoingStatus);
-                completedStatus.setText(completed);
+                title.setText("Question " + (position + 1));
 
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
                 v.startAnimation(animation);
-
-                bar.setVisibility(View.GONE);
-
-
             }
+        };
 
+        lv.setAdapter(adapter);
+    }
+
+    private void prepareBundleAndFinish(final String qIndex){
+        myRef = database.getReference("SH").child(cSHid);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+
+                Intent intent = new Intent(getApplicationContext(), Rswipe.class);
+                intent.putExtra("CurrentSHid", cSHid);
+                intent.putExtra("CurrentIndex", index);
+                intent.putExtra("CurrentRQId", sh.questions.get(Integer.parseInt(qIndex)).getId());
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                finish();
+            }
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 System.out.println("The read failed: " + databaseError.getCode());
@@ -172,16 +134,14 @@ public class SSHdash extends AppCompatActivity
         });
     }
 
-
-
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        Intent intent = new Intent(getApplicationContext(), Pdash.class);
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentIndex", index);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -205,7 +165,7 @@ public class SSHdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
+            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
 
             startActivity(SSH);
 
@@ -246,7 +206,7 @@ public class SSHdash extends AppCompatActivity
 
     }
 
-    private void menuBarSetUp() {
+    private void menuBarSetUp(){
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -258,4 +218,10 @@ public class SSHdash extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         updateNavHeader();
     }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+
+    }
 }
+

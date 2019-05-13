@@ -22,7 +22,8 @@
     <string name="title_activity_shview">SHview</string>
     <string name="title_activity_qview">Qview</string>
     <string name="title_activity_rdash">Rdash</string>
-    <string name="title_activity_sqdash">SQdash</string>
+    <string name="title_activity_rqdash">RQdash</string>
+    <string name="title_activity_rswipe">Rswipe</string>
     <string name="title_activity_rview">Rview</string>
     <string name="title_activity_sqview">SQview</string>
     <string name="title_activity_pdash">Pdash</string>
@@ -30,4 +31,6 @@
     <string name="title_activity_rpie">Rpie</string>
     <string name="title_activity_rcolumn">Rcolumn</string>
     <string name="title_activity_rcloud">Rcloud</string>
+    <string name="title_activity_sqdash">SQdash</string>
+
 </resources>
