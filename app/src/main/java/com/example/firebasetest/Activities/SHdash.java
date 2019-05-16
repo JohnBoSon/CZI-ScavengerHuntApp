@@ -16,6 +16,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +49,9 @@ public class SHdash extends AppCompatActivity
     private String ownerId;
     private ListView lv;
     private FirebaseListAdapter adapter;
+    private ProgressBar bar;
+    NavigationView navigationView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +64,9 @@ public class SHdash extends AppCompatActivity
         database = FirebaseDatabase.getInstance();
 
         addBtn = findViewById(R.id.addBtn);
+        bar = findViewById(R.id.progress_bar);
+        bar.setVisibility(View.GONE);
+
 
 
         lv = (ListView) findViewById(R.id.listView);
@@ -111,8 +118,9 @@ public class SHdash extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        checkAccountType();
         updateNavHeader();
     }
 
@@ -122,32 +130,35 @@ public class SHdash extends AppCompatActivity
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()) {
+                    SH cSH = dataSnapshot.getValue(SH.class);
 
-                SH cSH = dataSnapshot.getValue(SH.class);
+                    String shTitle = cSH.getTitle();
+                    String onGoingStatus;
 
-                String shTitle = cSH.getTitle();
-                String onGoingStatus;
+                    if (cSH.checkOngoing()) {
+                        onGoingStatus = "OnGoing";
+                    } else {
+                        onGoingStatus = "Ended";
+                    }
 
-                if(cSH.checkOngoing()){
-                    onGoingStatus = "OnGoing";
+                    String numPeople = cSH.participants.size() + " Participants";
+
+                    TextView title = (TextView) v.findViewById(R.id.textView1);
+                    TextView participants = (TextView) v.findViewById(R.id.textView2);
+                    TextView ongoingStatus = (TextView) v.findViewById(R.id.textView3);
+
+                    title.setText(shTitle);
+                    participants.setText(onGoingStatus);
+                    ongoingStatus.setText(numPeople);
+
+                    Animation animation = null;
+                    animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                    v.startAnimation(animation);
+                    bar.setVisibility(View.GONE);
                 }else{
-                    onGoingStatus = "Ended";
+                    bar.setVisibility(View.GONE);
                 }
-
-                String numPeople =  cSH.participants.size() + " Participants";
-
-                TextView title = (TextView) v.findViewById(R.id.textView1);
-                TextView participants = (TextView) v.findViewById(R.id.textView2);
-                TextView ongoingStatus = (TextView) v.findViewById(R.id.textView3);
-
-                title.setText(shTitle);
-                participants.setText(onGoingStatus);
-                ongoingStatus.setText(numPeople);
-
-                Animation animation = null;
-                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                v.startAnimation(animation);
-
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -155,6 +166,31 @@ public class SHdash extends AppCompatActivity
             }
         });
 
+    }
+
+    private void checkAccountType() {
+        myRef = database.getReference("User").child(ownerId).child("accountType");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String checking = dataSnapshot.getValue(String.class);
+                if(checking.equals("TEACHER")){
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item.setEnabled(true);
+                    nav_item.setVisible(true);
+                }else{
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item.setEnabled(false);
+                    nav_item.setVisible(false);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
     }
 
     private void prepareBundleAndFinish( final String index) {
@@ -209,7 +245,6 @@ public class SHdash extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view old_item clicks here.
@@ -217,26 +252,34 @@ public class SHdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+            Intent intent = new Intent(getApplicationContext(), SSHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
-            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 
-
-            this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_new_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHenter.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
-            Intent loginActivity = new Intent(getApplicationContext(),LoginActivity.class);
-            startActivity(loginActivity);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
             finish();
 
         }

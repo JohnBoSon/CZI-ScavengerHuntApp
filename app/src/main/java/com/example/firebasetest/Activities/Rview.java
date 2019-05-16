@@ -53,6 +53,7 @@ public class Rview extends AppCompatActivity
     ToggleButton declineTB;
     ImageView imageView;
     Button saveBtn;
+    NavigationView navigationView;
 
 
     String index;
@@ -180,6 +181,31 @@ public class Rview extends AppCompatActivity
 
     }
 
+    private void checkAccountType() {
+        myRef = database.getReference("User").child(ownerId).child("accountType");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String checking = dataSnapshot.getValue(String.class);
+                if(checking.equals("TEACHER")){
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item.setEnabled(true);
+                    nav_item.setVisible(true);
+                }else{
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item.setEnabled(false);
+                    nav_item.setVisible(false);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
     private void setUpView(){
         myRef = database.getReference("SH").child(cSHid);
 
@@ -207,7 +233,7 @@ public class Rview extends AppCompatActivity
                 if(rType.equals("PHOTO")){
                     Glide.with(imageView.getContext()).load(sh.responses.get(Integer.parseInt(rIndex)).getReply()).into(imageView);
                     TextReplyTv.setVisibility(View.GONE);
-
+                    //showMessage(sh.responses.get(Integer.parseInt(rIndex)).getReply());
 
                 }else if(rType.equals("TEXT")){
                     TextReplyTv.setText(sh.responses.get(Integer.parseInt(rIndex)).getReply());
@@ -254,7 +280,6 @@ public class Rview extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view old_item clicks here.
@@ -262,23 +287,34 @@ public class Rview extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+            Intent intent = new Intent(getApplicationContext(), SSHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
-            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
+
 
         }else if (id == R.id.nav_new_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHenter.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
+
 
         }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
-            Intent loginActivity = new Intent(getApplicationContext(),LoginActivity.class);
-            startActivity(loginActivity);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
             finish();
 
         }
@@ -290,7 +326,7 @@ public class Rview extends AppCompatActivity
 
     public void updateNavHeader() {
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
 
         TextView navUsername = headerView.findViewById(R.id.nav_username);
@@ -310,6 +346,7 @@ public class Rview extends AppCompatActivity
         toggle.syncState();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        checkAccountType();
         updateNavHeader();
     }
 

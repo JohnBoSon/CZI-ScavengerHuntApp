@@ -35,6 +35,44 @@ public class SH {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
+    public boolean isUserGraded(String userId){
+        int countResponse = 0;
+        int pIndex = 0;
+
+        for(int i = 0 ; i < participants.size();i++){
+            if(participants.get(i).getId().equals(userId)){
+                pIndex = i;
+            }
+        }
+
+
+        for(int i = 0; i < responses.size(); i++){
+            if(responses.get(i).getReplierId().equals(userId) && responses.get(i).isGraded()){
+                countResponse++;
+            }
+        }
+
+        if(countResponse == participants.get(pIndex).getNumResponse() && participants.get(pIndex).getNumResponse() != 0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+
+
+    public int findPindex(String userId){
+
+        int pIndex = 0;
+        for(int i = 0 ; i < participants.size();i++){
+            if(participants.get(i).getId().equals(userId)){
+                pIndex = i;
+            }
+        }
+
+        return pIndex;
+    }
+
     public SH(String id, String ownerId, String title, String description, String date) {
         this.onGoing = false;
         this.id = id;

@@ -18,6 +18,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +54,8 @@ public class Rdash extends AppCompatActivity
 
     ListView lv;
     FirebaseListAdapter adapter;
+    private ProgressBar bar;
+
 
 
     @Override
@@ -70,12 +73,14 @@ public class Rdash extends AppCompatActivity
         pIndex = getIntent().getExtras().getString("CurrentPIndex");
 
         lv = (ListView) findViewById(R.id.listView);
+        bar = findViewById(R.id.progress_bar);
+
         setUpListView();
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                Toast.makeText(Rdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(Rdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
                 prepareBundleAndFinish(Rview.class, index + "");
             }
         });
@@ -110,17 +115,24 @@ public class Rdash extends AppCompatActivity
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                SH sh = dataSnapshot.getValue(SH.class);
 
-                TextView title = (TextView) v.findViewById(R.id.textView1);
-                if(model.isGraded()){
-                    title.setText("Question " + (sh.getQuestionPosition(model.getQuestionId()) + 1) + " Graded");
-                }else {
-                    title.setText("Question " + (sh.getQuestionPosition(model.getQuestionId()) + 1) + " Ungraded");
+                if(dataSnapshot.exists()) {
+
+                    SH sh = dataSnapshot.getValue(SH.class);
+
+                    TextView title = (TextView) v.findViewById(R.id.textView1);
+                    if (model.isGraded()) {
+                        title.setText("Question " + (sh.getQuestionPosition(model.getQuestionId()) + 1) + " Graded");
+                    } else {
+                        title.setText("Question " + (sh.getQuestionPosition(model.getQuestionId()) + 1) + " Ungraded");
+                    }
+                    Animation animation = null;
+                    animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                    v.startAnimation(animation);
+                    bar.setVisibility(View.GONE);
+                }else{
+                    bar.setVisibility(View.GONE);
                 }
-                Animation animation = null;
-                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                v.startAnimation(animation);
             }
 
             @Override
@@ -219,7 +231,6 @@ public class Rdash extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view old_item clicks here.
@@ -227,24 +238,34 @@ public class Rdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
-            startActivity(Swipe);
+            Intent intent = new Intent(getApplicationContext(), SSHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
+
 
         } else if (id == R.id.nav_manage_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_new_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHenter.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
-            Intent loginActivity = new Intent(getApplicationContext(),LoginActivity.class);
-            startActivity(loginActivity);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
             finish();
 
         }

@@ -49,6 +49,7 @@ public class Rcolumn extends AppCompatActivity
     DatabaseReference myRef;
 
     String cSHid;
+    String index;
 
     AnyChartView anyChartView;
     Button nextBtn;
@@ -65,10 +66,9 @@ public class Rcolumn extends AppCompatActivity
         database = FirebaseDatabase.getInstance();
 
         cSHid = getIntent().getExtras().getString("CurrentSHid");
+        index = getIntent().getExtras().getString("CurrentIndex");
 
 
-
-        cSHid = getIntent().getExtras().getString("CurrentSHid");
 
         menuBarSetUp();
 
@@ -121,7 +121,7 @@ public class Rcolumn extends AppCompatActivity
                         .format("{%Value}{groupsSeparator: }");
 
                 cartesian.animation(true);
-                cartesian.title("Number of Correct Answer for Each Question");
+                cartesian.title("Correct Answers for Each Question");
 
                 cartesian.yScale().minimum(0d);
 
@@ -147,12 +147,12 @@ public class Rcolumn extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        Intent intent = new Intent(getApplicationContext(), Pdash.class);
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentIndex", index);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     @Override

@@ -18,6 +18,9 @@ import android.widget.TextView;
 import com.example.firebasetest.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 public class SHview extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -84,7 +87,6 @@ public class SHview extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view old_item clicks here.
@@ -92,23 +94,34 @@ public class SHview extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+            Intent intent = new Intent(getApplicationContext(), SSHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
-            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
-            Intent manageSHActivity = new Intent(getApplicationContext(),ManageSHActivity.class);
-            startActivity(manageSHActivity);
+
+            Intent intent = new Intent(getApplicationContext(), SHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
+
 
         }else if (id == R.id.nav_new_sh) {
-            Intent BNaviTest = new Intent(getApplicationContext(),BNaviTest.class);
-            startActivity(BNaviTest);
+
+            Intent intent = new Intent(getApplicationContext(), SHenter.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
+
 
         }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
-            Intent loginActivity = new Intent(getApplicationContext(),LoginActivity.class);
-            startActivity(loginActivity);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
             finish();
 
         }
@@ -117,6 +130,31 @@ public class SHview extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+/*
+    private void checkAccountType() {
+        myRef = database.getReference("User").child(userId).child("accountType");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String checking = dataSnapshot.getValue(String.class);
+                if(checking.equals("TEACHER")){
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item2 = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item2.setEnabled(false);
+                    nav_item2.setVisible(false);
+                }else{
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item2 = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item2.setEnabled(false);
+                    nav_item2.setVisible(false);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }*/
 
     public void updateNavHeader() {
 

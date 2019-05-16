@@ -51,6 +51,7 @@ public class Rcloud extends AppCompatActivity
     DatabaseReference myRef;
 
     String cSHid;
+    String index;
 
     AnyChartView anyChartView;
     Button nextBtn;
@@ -71,6 +72,7 @@ public class Rcloud extends AppCompatActivity
         nextBtn = findViewById(R.id.nextBtn);
         textView = findViewById(R.id.textView);
         cSHid = getIntent().getExtras().getString("CurrentSHid");
+        index = getIntent().getExtras().getString("CurrentIndex");
 
         textView.setVisibility(View.GONE);
 
@@ -138,12 +140,12 @@ public class Rcloud extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        Intent intent = new Intent(getApplicationContext(), Pdash.class);
+        intent.putExtra("CurrentSHid", cSHid);
+        intent.putExtra("CurrentIndex", index);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -159,7 +161,6 @@ public class Rcloud extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view old_item clicks here.
@@ -167,24 +168,34 @@ public class Rcloud extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
-            startActivity(Swipe);
+            Intent intent = new Intent(getApplicationContext(), SSHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
+
 
         } else if (id == R.id.nav_manage_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_new_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHenter.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
-            Intent loginActivity = new Intent(getApplicationContext(),LoginActivity.class);
-            startActivity(loginActivity);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
             finish();
 
         }

@@ -7,15 +7,15 @@
         <item
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_home_black_24dp"
-            android:title="Home" />
+            android:title="My Events" />
         <item
             android:id="@+id/nav_manage_sh"
             android:icon="@drawable/ic_settings_black_24dp"
-            android:title="Manage Scavenger Hunt" />
+            android:title="Manage Hosted Event" />
         <item
             android:id="@+id/nav_new_sh"
             android:icon="@drawable/ic_art_track_black_24dp"
-            android:title="Start New Scavenger Hunt" />
+            android:title="Join New Event" />
         <item
             android:id="@+id/nav_signout"
             android:icon="@drawable/ic_exit_to_app_black_24dp"

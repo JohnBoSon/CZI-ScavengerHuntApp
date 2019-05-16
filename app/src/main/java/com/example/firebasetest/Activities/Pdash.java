@@ -17,9 +17,11 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.firebasetest.Activities.Beta.Swipe;
 import com.example.firebasetest.Activities.Classes.Response;
 import com.example.firebasetest.Activities.Classes.SH;
 import com.example.firebasetest.Activities.Classes.User;
@@ -53,6 +55,8 @@ public class Pdash extends AppCompatActivity
 
     private Button statsBtn;
     private Button qGradeBtn;
+    private ProgressBar bar;
+
 
 
     @Override
@@ -62,6 +66,8 @@ public class Pdash extends AppCompatActivity
 
         qGradeBtn = (Button) findViewById(R.id.qGradeBtn);
         statsBtn = (Button) findViewById(R.id.statsBtn);
+        bar = findViewById(R.id.progress_bar);
+        bar.setVisibility(View.GONE);
 
 
         mAuth = FirebaseAuth.getInstance();
@@ -76,7 +82,8 @@ public class Pdash extends AppCompatActivity
         menuBarSetUp();
 
         lv = (ListView) findViewById(R.id.listView);
-        Query query = FirebaseDatabase.getInstance().getReference().child("SH").child(cSHid).child("participants");
+        Query query = FirebaseDatabase.getInstance().getReference().child("SH").child(cSHid).child("participants");//.orderByChild("submitted").equalTo(true);
+
 
         FirebaseListOptions<User> options = new FirebaseListOptions.Builder<User>()
                 .setLayout(R.layout.sh_adapter_view_layout)
@@ -97,8 +104,8 @@ public class Pdash extends AppCompatActivity
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pIndex, long l) {
-                Toast.makeText(Pdash.this, "Clicked "+ pIndex, Toast.LENGTH_SHORT).show();
-                createResponseList("" + pIndex);
+                //Toast.makeText(Pdash.this, "Clicked "+ pIndex, Toast.LENGTH_SHORT).show();
+                createResponseList(((User) adapter.getItem(pIndex)).getId());
             }
         });
 
@@ -109,6 +116,7 @@ public class Pdash extends AppCompatActivity
                 Intent intent = new Intent(getApplicationContext(), Rcolumn.class);
 
                 intent.putExtra("CurrentSHid", cSHid);
+                intent.putExtra("CurrentIndex", index);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
                 finish();
@@ -118,8 +126,10 @@ public class Pdash extends AppCompatActivity
         qGradeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                generatefakes();
-                Intent intent = new Intent(getApplicationContext(), RQdash.class);
+                //generatefakes();
+                //Intent intent = new Intent(getApplicationContext(), RQdash.class);
+                Intent intent = new Intent(getApplicationContext(), Rswipe.class);
+
                 intent.putExtra("CurrentSHid", cSHid);
                 intent.putExtra("CurrentIndex", index);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -160,17 +170,19 @@ public class Pdash extends AppCompatActivity
         finish();
     }
 
-    private void createResponseList(final String pIndex){
+    private void createResponseList(final String userId){
         myRef = database.getReference("SH").child(cSHid);;
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 SH sh = dataSnapshot.getValue(SH.class);
-                if(sh.participants.get(Integer.parseInt(pIndex)).isSubmitted()){
-                    ArrayList<Response> rList = sh.generateResponseList(sh.participants.get(Integer.parseInt(pIndex)).getId());
+
+                int pIndex = sh.findPindex(userId);
+                if(sh.participants.get(pIndex).isSubmitted()){
+                    ArrayList<Response> rList = sh.generateResponseList(sh.participants.get(pIndex).getId());
                     database.getReference().child("CurrentResponses").child(cSHid).child("responses").setValue(rList);
-                    prepareBundleAndFinish(pIndex);
+                    prepareBundleAndFinish(""+pIndex);
                 }else{
                     showMessage("No Submissions Available");
                 }
@@ -190,30 +202,38 @@ public class Pdash extends AppCompatActivity
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                SH sh = dataSnapshot.getValue(SH.class);
-                TextView name = (TextView) v.findViewById(R.id.textView1);
-                TextView grade = (TextView) v.findViewById(R.id.textView2);
-                TextView responseSubmitted = (TextView) v.findViewById(R.id.textView3);
+                if(dataSnapshot.exists()) {
+                    SH sh = dataSnapshot.getValue(SH.class);
+                    TextView name = (TextView) v.findViewById(R.id.textView1);
+                    TextView grade = (TextView) v.findViewById(R.id.textView2);
+                    TextView responseSubmitted = (TextView) v.findViewById(R.id.textView3);
 
-                name.setText(model.getName());
+                    name.setText(model.getName());
 
-                if(sh.responses.size() > 0 ){
-                    if(model.isSubmitted()){
-                        grade.setText("Score: " + model.getNumCorrect() + " Out of " + sh.getMaxScore());
-                    }else{
-                        grade.setText("Score: Ungraded");
+                    if (sh.responses.size() > 0) {
+                        if (model.isSubmitted() && sh.isUserGraded(model.getId())) {
+                            grade.setText("Score: " + model.getNumCorrect() + " Out of " + sh.getMaxScore());
+                        } else if (model.isSubmitted()) {
+                            grade.setText("Ungraded ");
+                        } else {
+                            grade.setText("Nothing Submitted");
+                        }
+
+                        responseSubmitted.setText(model.getNumResponse() + " Responses");
+
+                    } else {
+                        grade.setText("");
+                        responseSubmitted.setText("No Responses");
                     }
 
-                    responseSubmitted.setText(model.getNumResponse() + " Responses");
-
+                    Animation animation = null;
+                    animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                    v.startAnimation(animation);
+                    bar.setVisibility(View.GONE);
                 }else{
-                    grade.setText("");
-                    responseSubmitted.setText("No Responses");
+                    bar.setVisibility(View.GONE);
                 }
 
-                Animation animation = null;
-                animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                v.startAnimation(animation);
             }
 
             @Override
@@ -254,24 +274,34 @@ public class Pdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent Swipe = new Intent(getApplicationContext(), com.example.firebasetest.Activities.Beta.Swipe.class);
-            startActivity(Swipe);
+            Intent intent = new Intent(getApplicationContext(), SSHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
+
 
         } else if (id == R.id.nav_manage_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_new_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHenter.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
-            Intent loginActivity = new Intent(getApplicationContext(),LoginActivity.class);
-            startActivity(loginActivity);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
             finish();
 
         }

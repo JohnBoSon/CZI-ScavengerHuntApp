@@ -156,7 +156,16 @@ public class SQview extends AppCompatActivity
                 SH checkingSH = dataSnapshot.getValue(SH.class);
 
                 Response cResponse = checkingSH.findReplierResponse(Integer.parseInt(qIndex), userId);
-                if(checkingSH.checkOngoing()) {
+                int pIndex = 0;
+                for(int i = 0 ; i < checkingSH.participants.size();i++){
+                    if(checkingSH.participants.get(i).getId().equals(userId)){
+                        pIndex = i;
+                    }
+                }
+
+                if(checkingSH.participants.get(pIndex).isSubmitted()){
+                    showMessage("Event Already Submitted, No New Changes Will be Saved");
+                }else if(checkingSH.checkOngoing()) {
                     if (cResponse != null) {
                         int responseIndex = checkingSH.findIndexOfResponse(cResponse.getId());
 
@@ -301,15 +310,14 @@ public class SQview extends AppCompatActivity
                 if(checking.equals("TEACHER")){
                     Menu menuNav = navigationView.getMenu();
                     MenuItem nav_item2 = menuNav.findItem(R.id.nav_manage_sh);
-                    nav_item2.setEnabled(false);
-                    nav_item2.setVisible(false);
+                    nav_item2.setEnabled(true);
+                    nav_item2.setVisible(true);
                 }else{
                     Menu menuNav = navigationView.getMenu();
                     MenuItem nav_item2 = menuNav.findItem(R.id.nav_manage_sh);
                     nav_item2.setEnabled(false);
                     nav_item2.setVisible(false);
                 }
-
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -317,6 +325,8 @@ public class SQview extends AppCompatActivity
             }
         });
     }
+
+
 
     @Override
     public void onBackPressed() {
@@ -341,7 +351,6 @@ public class SQview extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view old_item clicks here.
@@ -349,25 +358,34 @@ public class SQview extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+            Intent intent = new Intent(getApplicationContext(), SSHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
-            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
-        } else if (id == R.id.nav_new_sh) {
+        }else if (id == R.id.nav_new_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHenter.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
-        } else if (id == R.id.nav_signout) {
+        }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
-            Intent loginActivity = new Intent(getApplicationContext(), LoginActivity.class);
-            startActivity(loginActivity);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
             finish();
 
         }
@@ -401,14 +419,15 @@ public class SQview extends AppCompatActivity
             mProgressDialog.setMessage("Uploading");
             mProgressDialog.show();
 
-            Uri uri = data.getData();
+            Uri turi = data.getData();
 
-            cUri = uri.toString();
+            //cUri = uri.toString();
 
-            //final StorageReference filepath = storage.child("Photos").child(uri.getLastPathSegment());
+            //final StorageReference filepath = storage.child("PhotosTest").child(turi.getLastPathSegment());
             final StorageReference filepath = storage.child("Photos").child(userId).child(qId);
 
-            filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+
+            filepath.putFile(turi).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
@@ -416,6 +435,8 @@ public class SQview extends AppCompatActivity
                         @Override
                         public void onSuccess(Uri uri) {
                             // create post Object
+                            cUri = uri.toString();
+
                             Glide.with(imageView.getContext()).load(cUri).into(imageView);
                             //FirebaseDatabase.getInstance().getReference("beta").child("imageTest").setValue(uri.toString());
                             Toast.makeText(SQview.this, "Upload Done",Toast.LENGTH_LONG).show();

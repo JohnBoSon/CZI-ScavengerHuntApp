@@ -22,6 +22,7 @@ public class User {
         submitted = false;
     }
 
+
     public int getsListIndex() { return sListIndex; }
 
     public void setsListIndex(int sListIndex) { this.sListIndex = sListIndex; }

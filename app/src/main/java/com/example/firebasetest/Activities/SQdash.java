@@ -18,6 +18,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -54,8 +55,11 @@ public class SQdash extends AppCompatActivity
         ListView lv;
         FirebaseListAdapter adapter;
         Button submitBtn;
+        NavigationView navigationView;
+    private ProgressBar bar;
 
-        String index;
+
+    String index;
         String cSHid;
 
         @Override
@@ -77,6 +81,9 @@ public class SQdash extends AppCompatActivity
 
             lv = (ListView) findViewById(R.id.listView);
             submitBtn = findViewById(R.id.submitBtn);
+            bar = findViewById(R.id.progress_bar);
+            bar.setVisibility(View.GONE);
+
 
             setupListView();
             menuBarSetUp();
@@ -107,7 +114,17 @@ public class SQdash extends AppCompatActivity
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if(dataSnapshot.exists()){
                         SH checkingSH = dataSnapshot.getValue(SH.class);
-                        if(checkingSH.checkOngoing()){
+
+                        int pIndex = 0;
+                        for(int i = 0 ; i < checkingSH.participants.size();i++){
+                            if(checkingSH.participants.get(i).getId().equals(userId)){
+                                pIndex = i;
+                            }
+                        }
+
+                        if(checkingSH.participants.get(pIndex).isSubmitted()){
+                            showMessage("Event is Already Submitted");
+                        }else if(checkingSH.checkOngoing()){
                             for(int n = 0; n < checkingSH.participants.size(); n++){
                                 if(checkingSH.participants.get(n).getId().equals(userId)&& checkingSH.findNumResponse(userId) > 0){
                                     checkingSH.participants.get(n).setNumResponse(checkingSH.findNumResponse(userId));
@@ -134,22 +151,16 @@ public class SQdash extends AppCompatActivity
 
         private void setupListView(){
             Query query = FirebaseDatabase.getInstance().getReference("SH").child(cSHid).child("questions");
-            FirebaseListOptions<SH> options = new FirebaseListOptions.Builder<SH>()
+            FirebaseListOptions<Question> options = new FirebaseListOptions.Builder<Question>()
                     .setLayout(R.layout.adapter_question_view)
                     .setLifecycleOwner(SQdash.this)
-                    .setQuery(query,SH.class)
+                    .setQuery(query,Question.class)
                     .build();
 
-            adapter = new FirebaseListAdapter<SH>(options) {
+            adapter = new FirebaseListAdapter<Question>(options) {
                 @Override
-                protected void populateView(View v, SH model, int position) {
-                    TextView title = (TextView) v.findViewById(R.id.textView1);
-
-                    title.setText("Question " + (position + 1));
-
-                    Animation animation = null;
-                    animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
-                    v.startAnimation(animation);
+                protected void populateView(View v, Question model, int position) {
+                   setView(v,  model,  position);
                 }
             };
 
@@ -190,6 +201,74 @@ public class SQdash extends AppCompatActivity
 
     }
 
+
+    private void setView(final View v,final Question model,final int position){
+
+        myRef = database.getReference("SH").child(cSHid);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()) {
+                    SH sh = dataSnapshot.getValue(SH.class);
+
+                    int pIndex = sh.findPindex(userId);
+
+                    TextView title = (TextView) v.findViewById(R.id.textView1);
+
+
+                    if (sh.isUserGraded(userId)) {
+                        if (sh.findReplierResponse(position, userId).isPass()) {
+                            title.setText("Question " + (position + 1) + ": Reply Accepted");
+                        } else {
+                            title.setText("Question " + (position + 1) + ": Reply Declined");
+                        }
+                    } else {
+                        title.setText("Question " + (position + 1));
+                    }
+                    Animation animation = null;
+                    animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
+                    v.startAnimation(animation);
+                    bar.setVisibility(View.GONE);
+                }else{
+                    bar.setVisibility(View.GONE);
+                }
+
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+
+    }
+
+    private void checkAccountType() {
+        myRef = database.getReference("User").child(userId).child("accountType");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String checking = dataSnapshot.getValue(String.class);
+                if(checking.equals("TEACHER")){
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item.setEnabled(true);
+                    nav_item.setVisible(true);
+                }else{
+                    Menu menuNav = navigationView.getMenu();
+                    MenuItem nav_item = menuNav.findItem(R.id.nav_manage_sh);
+                    nav_item.setEnabled(false);
+                    nav_item.setVisible(false);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(getApplicationContext(), SSHdash.class);
@@ -211,7 +290,6 @@ public class SQdash extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view old_item clicks here.
@@ -219,25 +297,34 @@ public class SQdash extends AppCompatActivity
 
         if (id == R.id.nav_home) {
 
-            Intent SSH = new Intent(getApplicationContext(), com.example.firebasetest.Activities.SSHdash.class);
+            Intent intent = new Intent(getApplicationContext(), SSHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
-            startActivity(SSH);
 
         } else if (id == R.id.nav_manage_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHdash.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHdash.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_new_sh) {
 
-            this.startActivity(new Intent(getApplicationContext(), SHenter.class).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+            Intent intent = new Intent(getApplicationContext(), SHenter.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            finish();
 
 
         }else if (id == R.id.nav_signout) {
 
             FirebaseAuth.getInstance().signOut();
-            Intent loginActivity = new Intent(getApplicationContext(),LoginActivity.class);
-            startActivity(loginActivity);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
             finish();
 
         }
@@ -268,8 +355,9 @@ public class SQdash extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        checkAccountType();
         updateNavHeader();
     }
 
