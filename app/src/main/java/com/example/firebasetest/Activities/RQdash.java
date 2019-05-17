@@ -19,6 +19,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -56,6 +57,7 @@ public class RQdash extends AppCompatActivity
 
     String index;
     String cSHid;
+    private ImageView turtle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,8 @@ public class RQdash extends AppCompatActivity
 
         lv = (ListView) findViewById(R.id.listView);
         bar = findViewById(R.id.progress_bar);
+        turtle = findViewById(R.id.turtle);
+
         bar.setVisibility(View.GONE);
 
 
@@ -107,7 +111,9 @@ public class RQdash extends AppCompatActivity
                 TextView title = (TextView) v.findViewById(R.id.textView1);
 
                 title.setText("Question " + (position + 1));
-
+                if(position > 2){
+                    turtle.setVisibility(View.GONE);
+                }
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
                 v.startAnimation(animation);

@@ -45,7 +45,6 @@ public class SH {
             }
         }
 
-
         for(int i = 0; i < responses.size(); i++){
             if(responses.get(i).getReplierId().equals(userId) && responses.get(i).isGraded()){
                 countResponse++;
@@ -194,14 +193,67 @@ public class SH {
     }
 
     public String randomWordGenerater(){
-        int max = 80;
-        int min = 61;
-        int random1 = (int )(Math.random() * max + min);
-        int random2 = (int )(Math.random() * max + min);
 
-        String word = Character.toString((char)random1) + "ython"; //+ Character.toString((char)random2);
+        ArrayList<String> wordList = new ArrayList<>();
+        //int random2 = (int )(Math.random() * max + min);
+
+        //random nouns
+        wordList.add("cats");
+        wordList.add("dogs");
+        wordList.add("python");
+        wordList.add("trees");
+        wordList.add("cars");
+        wordList.add("rain");
+        wordList.add("cows");
+        wordList.add("kevin");
+        wordList.add("turtles");
+        wordList.add("panda");
+        wordList.add("pony");
+        wordList.add("horse");
+        wordList.add("panda");
+        wordList.add("rock");
+
+        //objects
+        wordList.add("chair");
+        wordList.add("glass");
+        wordList.add("table");
+        wordList.add("barn");
+        wordList.add("hat");
+        wordList.add("yarn");
+        wordList.add("grandma");
+
+        int max = wordList.size()-1;
+        int min = 0;
+        int random1 = (int )(Math.random() * max + min);
+        String word = wordList.get(random1);
+
+        //Character.toString((char)random1) + "ython"; //+ Character.toString((char)random2);
 
         return word;
+    }
+
+    public String randomPicGenerater(){
+
+
+        ArrayList<String> picList = new ArrayList<>();
+
+        //int random2 = (int )(Math.random() * max + min);
+
+        //random animals
+        picList.add("https://firebasestorage.googleapis.com/v0/b/fir-test-d36c4.appspot.com/o/Photos%2FGvK4aXsuLSXijCPpsnvgUM3Jg953%2F-Lf3sr-MXbQokE5GGKKa?alt=media&token=732209f2-1b5d-4610-9ee0-c682b6f6a3db");
+        picList.add("https://firebasestorage.googleapis.com/v0/b/fir-test-d36c4.appspot.com/o/Photos%2FGvK4aXsuLSXijCPpsnvgUM3Jg953%2F-Lf3ssnt1oZmIWunB65p?alt=media&token=88380ad2-d297-46be-b70b-bd716cbd60bd");
+        picList.add("https://firebasestorage.googleapis.com/v0/b/fir-test-d36c4.appspot.com/o/Photos%2FGvK4aXsuLSXijCPpsnvgUM3Jg953%2F-Lf3suqczmCv9BJ5AxsO?alt=media&token=dd1154cc-55b6-4c35-8c37-64d6e93623a1");
+        picList.add("https://firebasestorage.googleapis.com/v0/b/fir-test-d36c4.appspot.com/o/Photos%2FGvK4aXsuLSXijCPpsnvgUM3Jg953%2F-Lf3swppZ3nmZYtHJEGF?alt=media&token=fecb37d3-5b30-408e-b2f8-58c02c2df0e3");
+        picList.add("https://firebasestorage.googleapis.com/v0/b/fir-test-d36c4.appspot.com/o/Photos%2FGvK4aXsuLSXijCPpsnvgUM3Jg953%2F-Lf3szJB8W3BELIfsE01?alt=media&token=8af50cd1-ddaa-4265-a0a1-17b62e00faa0");
+
+
+        int max = picList.size()-1;
+        int min = 0;
+        int random1 = (int )(Math.random() * max + min);
+        String pic = picList.get(random1);
+
+
+        return pic;
     }
 
     public void generateFakeData(int nP){
@@ -209,18 +261,24 @@ public class SH {
         responses.clear();
 
         for(int i = 0 ; i < nP;i++){
-            User u = new User( + i + "fake", "la-a the " + i);
-            u.setSubmitted(true);
+            User u = new User(  i + "fake", "Generic Garry the " + i);
             participants.add(u);
             int countR = 0;
             for(int n = 0 ; n < questions.size(); n++){
                 if(questions.get(n).getReplyType().equals("TEXT")) {
-                    Response r = new Response(randomWordGenerater(), i + "" + n + "" + randomWordGenerater(), participants.get(i).getId(), false, questions.get(n).getId());
+                    Response r = new Response(randomWordGenerater(),""+ i + "" +n+ ""+i, participants.get(i).getId(), false, questions.get(n).getId());
+                    responses.add(r);
+                    participants.get(i).setNumResponse(++countR);
+
+                }else{
+                    Response r = new Response(randomPicGenerater(),""+ i+ "" + n+ ""+i, participants.get(i).getId(), true, questions.get(n).getId());
                     responses.add(r);
                     participants.get(i).setNumResponse(++countR);
 
                 }
             }
+            u.setSubmitted(true);
+
         }
     }
 

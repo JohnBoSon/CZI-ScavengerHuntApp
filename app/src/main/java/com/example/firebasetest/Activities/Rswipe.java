@@ -132,14 +132,14 @@ public class Rswipe extends AppCompatActivity
 
             @Override
             public void onLeftCardExit(Object dataObject) {
-                Toast.makeText(Rswipe.this, "Left" + accepted + ((Response)dataObject).getReply(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(Rswipe.this, "Reply Declined", Toast.LENGTH_SHORT).show();
                 saveGrade(((Response)dataObject), false);
 
             }
 
             @Override
             public void onRightCardExit(Object dataObject) {
-                Toast.makeText(getApplicationContext(), "Right" + accepted, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Reply Accepted", Toast.LENGTH_SHORT).show();
                 saveGrade(((Response)dataObject), true);
             }
 
@@ -164,7 +164,7 @@ public class Rswipe extends AppCompatActivity
         flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
             @Override
             public void onItemClicked(int itemPosition, Object dataObject) {
-                Toast.makeText(Rswipe.this, "Clicked", Toast.LENGTH_SHORT);
+                //Toast.makeText(Rswipe.this, "Clicked", Toast.LENGTH_SHORT);
 
             }
         });

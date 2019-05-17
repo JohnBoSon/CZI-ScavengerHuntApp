@@ -65,10 +65,14 @@ public class SHedit extends AppCompatActivity
     private String index;
     private String cSHid;
 
+    int numFakes;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shedit);
+
+        numFakes = 10;
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
@@ -103,6 +107,8 @@ public class SHedit extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 setupRemove( Integer.parseInt(index));
+                //generatefakes();
+                //showMessage("done");
 
             }
         });
@@ -191,6 +197,27 @@ public class SHedit extends AppCompatActivity
                 System.out.println("The read failed: " + databaseError.getCode());
             }
         });
+    }
+
+    private void generatefakes(){
+        myRef = database.getReference("SH").child(cSHid);;
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SH sh = dataSnapshot.getValue(SH.class);
+                //sh.generateGradedFakeData(300);
+                sh.generateFakeData(numFakes);
+
+                database.getReference("SH").child(cSHid).setValue(sh);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
     }
 
     private void prepareBundleAndFinish(Class nextView) {

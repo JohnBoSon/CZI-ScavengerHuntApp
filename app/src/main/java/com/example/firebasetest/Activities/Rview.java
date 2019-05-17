@@ -215,7 +215,7 @@ public class Rview extends AppCompatActivity
                 SH sh = dataSnapshot.getValue(SH.class);
                 int qIndex = sh.getQuestionPosition(sh.responses.get(Integer.parseInt(rIndex)).getQuestionId());
 
-                showMessage(qIndex + "");
+                //showMessage(qIndex + "");
 
                 questionTV.setText("Question " + (qIndex + 1));
                 titleTV.setText(sh.questions.get(qIndex).getTitle());

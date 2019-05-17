@@ -64,15 +64,15 @@ public class SHenter extends AppCompatActivity
         enterBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-/*
+
                 if(accessCode.getText().toString().isEmpty()){
                     showMessage("Enter an Access Code");
                 }else{
                    findSH(accessCode.getText().toString());
-                    findSH("-Lf3734EigCNFfWjZ2-S");
+                    //findSH("-Lf3734EigCNFfWjZ2-S");
                 }
-*/
-                findSH("-Lf2vregpoXbpsf8wS47");
+
+                //findSH("-Lf2vregpoXbpsf8wS47");
 
             }
         });

@@ -108,7 +108,7 @@ public class RegisterActivity extends AppCompatActivity {
         studentTB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                teacherTB.setTextOff("Teacher");
+                teacherTB.setTextOff("Instructor");
                 teacherTB.setChecked(false);
                 accType = "STUDENT";
             }
