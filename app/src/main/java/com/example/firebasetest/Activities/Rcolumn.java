@@ -117,7 +117,7 @@ public class Rcolumn extends AppCompatActivity
                         .position(Position.CENTER_BOTTOM)
                         .anchor(Anchor.CENTER_BOTTOM)
                         .offsetX(0d)
-                        .offsetY(5d)
+                        .offsetY(0d)
                         .format("{%Value}{groupsSeparator: }");
 
                 cartesian.animation(true);
@@ -125,7 +125,7 @@ public class Rcolumn extends AppCompatActivity
 
                 cartesian.yScale().minimum(0d);
 
-                cartesian.yAxis(0).labels().format("${%Value}{groupsSeparator: }");
+                cartesian.yAxis(0).labels().format("{%Value}{groupsSeparator: }");
 
                 cartesian.tooltip().positionMode(TooltipPositionMode.POINT);
                 cartesian.interactivity().hoverMode(HoverMode.BY_X);

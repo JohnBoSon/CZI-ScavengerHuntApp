@@ -17,6 +17,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -54,6 +55,7 @@ public class Rdash extends AppCompatActivity
 
     ListView lv;
     FirebaseListAdapter adapter;
+    private ImageView turtle;
 
 
 
@@ -72,6 +74,8 @@ public class Rdash extends AppCompatActivity
         pIndex = getIntent().getExtras().getString("CurrentPIndex");
 
         lv = (ListView) findViewById(R.id.listView);
+        turtle = findViewById(R.id.turtle);
+
 
         setUpListView();
 
@@ -99,6 +103,9 @@ public class Rdash extends AppCompatActivity
         adapter = new FirebaseListAdapter<Response>(options) {
             @Override
             protected void populateView(View v, Response model, int position) {
+                if(position > 2){
+                    turtle.setVisibility(View.GONE);
+                }
                 makeView(model,v);
 
             }

@@ -15,6 +15,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -51,6 +52,7 @@ public class SHdash extends AppCompatActivity
     private FirebaseListAdapter adapter;
     private ProgressBar bar;
     NavigationView navigationView;
+    private ImageView turtle;
 
 
     @Override
@@ -65,6 +67,8 @@ public class SHdash extends AppCompatActivity
 
         addBtn = findViewById(R.id.addBtn);
         bar = findViewById(R.id.progress_bar);
+        turtle = findViewById(R.id.turtle);
+
         bar.setVisibility(View.GONE);
 
 
@@ -83,7 +87,11 @@ public class SHdash extends AppCompatActivity
         adapter = new FirebaseListAdapter<String>(options) {
             @Override
             protected void populateView(View v, String id, int position) {
+                if(position > 2){
+                    turtle.setVisibility(View.GONE);
+                }
                 setUpView(id, v);
+
             }
         };
 
@@ -101,7 +109,7 @@ public class SHdash extends AppCompatActivity
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                Toast.makeText(SHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(SHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
                 prepareBundleAndFinish(""+index);
 
             }

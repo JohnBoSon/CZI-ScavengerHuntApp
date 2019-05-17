@@ -16,6 +16,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -57,6 +58,7 @@ public class Pdash extends AppCompatActivity
     private Button qGradeBtn;
     private ProgressBar bar;
 
+    private ImageView turtle;
 
 
     @Override
@@ -67,6 +69,8 @@ public class Pdash extends AppCompatActivity
         qGradeBtn = (Button) findViewById(R.id.qGradeBtn);
         statsBtn = (Button) findViewById(R.id.statsBtn);
         bar = findViewById(R.id.progress_bar);
+        turtle = findViewById(R.id.turtle);
+
         bar.setVisibility(View.GONE);
 
 
@@ -94,6 +98,9 @@ public class Pdash extends AppCompatActivity
         adapter = new FirebaseListAdapter<User>(options) {
             @Override
             protected void populateView(View v, User model, int position) {
+                if(position > 2){
+                    turtle.setVisibility(View.GONE);
+                }
                 makeView(model,v);
             }
         };
@@ -105,6 +112,7 @@ public class Pdash extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pIndex, long l) {
                 //Toast.makeText(Pdash.this, "Clicked "+ pIndex, Toast.LENGTH_SHORT).show();
+
                 createResponseList(((User) adapter.getItem(pIndex)).getId());
             }
         });

@@ -17,6 +17,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -57,6 +58,8 @@ public class SQdash extends AppCompatActivity
         Button submitBtn;
         NavigationView navigationView;
     private ProgressBar bar;
+    private ImageView turtle;
+
 
 
     String index;
@@ -76,12 +79,14 @@ public class SQdash extends AppCompatActivity
             cSHid = getIntent().getExtras().getString("CurrentSHid");
 
 
-            showMessage(index + " ," + cSHid);
+            //showMessage(index + " ," + cSHid);
 
 
             lv = (ListView) findViewById(R.id.listView);
             submitBtn = findViewById(R.id.submitBtn);
             bar = findViewById(R.id.progress_bar);
+            turtle = findViewById(R.id.turtle);
+
             bar.setVisibility(View.GONE);
 
 
@@ -160,7 +165,10 @@ public class SQdash extends AppCompatActivity
             adapter = new FirebaseListAdapter<Question>(options) {
                 @Override
                 protected void populateView(View v, Question model, int position) {
-                   setView(v,  model,  position);
+                    if(position > 2){
+                        turtle.setVisibility(View.GONE);
+                    }
+                    setView(v,  model,  position);
                 }
             };
 

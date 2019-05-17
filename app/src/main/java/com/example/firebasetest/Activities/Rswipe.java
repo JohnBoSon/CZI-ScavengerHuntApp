@@ -70,7 +70,7 @@ public class Rswipe extends AppCompatActivity
         index = getIntent().getExtras().getString("CurrentIndex");
         cSHid = getIntent().getExtras().getString("CurrentSHid");
         counterSize = getIntent().getExtras().getString("counterSize");;
-        
+
 
         flingContainer = findViewById(R.id.frame);
 

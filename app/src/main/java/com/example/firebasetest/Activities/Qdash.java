@@ -17,6 +17,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -52,6 +53,7 @@ public class Qdash extends AppCompatActivity
     private ListView lv;
     private FirebaseListAdapter adapter;
     private ProgressBar bar;
+    private ImageView turtle;
 
     private String index;
     private String cSHid;
@@ -73,6 +75,8 @@ public class Qdash extends AppCompatActivity
         addBtn = findViewById(R.id.addBtn);
         lv = (ListView) findViewById(R.id.listView);
         bar = findViewById(R.id.progress_bar);
+        turtle = findViewById(R.id.turtle);
+
         bar.setVisibility(View.GONE);
 
 
@@ -90,6 +94,9 @@ public class Qdash extends AppCompatActivity
             @Override
             protected void populateView(View v, SH model, int position) {
                 TextView title = (TextView) v.findViewById(R.id.textView1);
+                if(position > 2){
+                    turtle.setVisibility(View.GONE);
+                }
                 title.setText("Question " + (position + 1));
                 Animation animation = null;
                 animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
@@ -112,7 +119,7 @@ public class Qdash extends AppCompatActivity
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int qIndex, long l) {
-                Toast.makeText(Qdash.this, "Clicked "+ qIndex, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(Qdash.this, "Clicked "+ qIndex, Toast.LENGTH_SHORT).show();
                 prepareBundleAndFinish(qIndex + "");
 
             }

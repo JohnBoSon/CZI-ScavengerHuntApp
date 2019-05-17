@@ -17,6 +17,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -48,6 +49,8 @@ public class SSHdash extends AppCompatActivity
     FirebaseListAdapter adapter;
     ProgressBar bar;
     NavigationView navigationView;
+    private ImageView turtle;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +65,8 @@ public class SSHdash extends AppCompatActivity
         database = FirebaseDatabase.getInstance();
 
         bar = findViewById(R.id.progress_bar);
+        turtle = findViewById(R.id.turtle);
+
         bar.setVisibility(View.GONE);
 
 
@@ -79,6 +84,9 @@ public class SSHdash extends AppCompatActivity
         adapter = new FirebaseListAdapter<String>(options) {
             @Override
             protected void populateView(View v, String model, int position) {
+                if(position > 2){
+                    turtle.setVisibility(View.GONE);
+                }
                 updateList(model,v);
 
             }
@@ -90,7 +98,7 @@ public class SSHdash extends AppCompatActivity
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                Toast.makeText(SSHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(SSHdash.this, "Clicked "+ index, Toast.LENGTH_SHORT).show();
                 prepareBundleAndFinish(index+"");
             }
         });
