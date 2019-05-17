@@ -11,7 +11,7 @@
         <item
             android:id="@+id/nav_manage_sh"
             android:icon="@drawable/ic_settings_black_24dp"
-            android:title="Manage Hosted Event" />
+            android:title="Manage Events" />
         <item
             android:id="@+id/nav_new_sh"
             android:icon="@drawable/ic_art_track_black_24dp"

@@ -10,9 +10,9 @@
 
     <com.lorentzos.flingswipe.SwipeFlingAdapterView
         android:id="@+id/frame"
-        android:background="#ffeee9e2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#ffeee9e2"
         app:rotation_degrees="15.5"
         tools:context=".MyActivity" />
 
@@ -24,8 +24,10 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:background="@drawable/reg_btn_style"
+        android:fontFamily="sans-serif-black"
         android:text="Counter"
         android:textColor="#fff"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

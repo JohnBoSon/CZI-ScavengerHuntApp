@@ -119,6 +119,8 @@ public class RQdash extends AppCompatActivity
         lv.setAdapter(adapter);
     }
 
+
+
     private void prepareBundleAndFinish(final String qIndex){
         myRef = database.getReference("SH").child(cSHid);
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -126,10 +128,14 @@ public class RQdash extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
                 SH sh = dataSnapshot.getValue(SH.class);
 
+                database.getReference("swipe").child(cSHid).setValue(sh.generateSwipeList(sh.questions.get(Integer.parseInt(qIndex)).getId()));
+
+                //counterB.setText("Responses Left: " + sh.generateSwipeList(rqId).size());
+
                 Intent intent = new Intent(getApplicationContext(), Rswipe.class);
                 intent.putExtra("CurrentSHid", cSHid);
                 intent.putExtra("CurrentIndex", index);
-                intent.putExtra("CurrentRQId", sh.questions.get(Integer.parseInt(qIndex)).getId());
+                intent.putExtra("counterSize", "" + sh.generateSwipeList(sh.questions.get(Integer.parseInt(qIndex)).getId()).size());
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
                 finish();

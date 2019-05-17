@@ -127,8 +127,8 @@ public class Pdash extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 //generatefakes();
-                //Intent intent = new Intent(getApplicationContext(), RQdash.class);
-                Intent intent = new Intent(getApplicationContext(), Rswipe.class);
+                Intent intent = new Intent(getApplicationContext(), RQdash.class);
+                //Intent intent = new Intent(getApplicationContext(), Rswipe.class);
 
                 intent.putExtra("CurrentSHid", cSHid);
                 intent.putExtra("CurrentIndex", index);

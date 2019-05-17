@@ -25,7 +25,7 @@
             android:id="@+id/imageV"
             android:layout_width="300dp"
             android:layout_height="300dp"
-            android:background="@android:color/holo_blue_bright"
+            android:background="@color/colorPrimaryDark"
             android:scaleType="centerCrop"
 
             />
@@ -35,9 +35,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@android:color/transparent"
+            android:fontFamily="sans-serif-black"
             android:gravity="center|left"
             android:paddingLeft="20sp"
-            android:textColor="@android:color/black"
+            android:textAlignment="center"
+            android:textColor="@color/fui_bgGoogle"
             android:textSize="30sp"
             android:visibility="visible"
             tools:text="hello" />

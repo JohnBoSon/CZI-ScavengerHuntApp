@@ -52,7 +52,7 @@ public class Rswipe extends AppCompatActivity
 
     String cSHid;
     String ownerId;
-    String rqId;
+    String counterSize;
     String index;
 
     Boolean accepted = true;
@@ -69,16 +69,17 @@ public class Rswipe extends AppCompatActivity
 
         index = getIntent().getExtras().getString("CurrentIndex");
         cSHid = getIntent().getExtras().getString("CurrentSHid");
-        rqId = getIntent().getExtras().getString("CurrentRQId");;
+        counterSize = getIntent().getExtras().getString("counterSize");;
+        
 
-        counterB = findViewById(R.id.swipeBack);
-
-        makeSwipeList();
         flingContainer = findViewById(R.id.frame);
 
 
         flingContainer = findViewById(R.id.frame);
         counterB = findViewById(R.id.CounterBtn);
+
+
+        counterB.setText("Responses Left: " + counterSize);
 
 
         Query query = FirebaseDatabase.getInstance().getReference("swipe").child(cSHid);
@@ -94,14 +95,14 @@ public class Rswipe extends AppCompatActivity
                 ImageView image = (ImageView) v.findViewById(R.id.imageV);
                 if(model.isImage()){
                     Glide.with(image.getContext()).load(model.getReply()).into(image);
-                    title.setVisibility(View.GONE);
+                    //title.setVisibility(View.GONE);
 
                     //showMessage(model.getReply());
 
                     //showMessage("found");
                 }else {
                     title.setText(model.getReply());
-                    image.setVisibility(View.GONE);
+                    //image.setVisibility(View.GONE);
                     //showMessage("y tho");
 
                 }
@@ -170,24 +171,6 @@ public class Rswipe extends AppCompatActivity
 
     }
 
-    private void makeSwipeList(){
-        myRef = database.getReference("SH").child(cSHid);
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                SH sh = dataSnapshot.getValue(SH.class);
-                database.getReference("swipe").child(cSHid).setValue(sh.generateSwipeList(rqId));
-
-                counterB.setText("Responses Left: " + sh.generateSwipeList(rqId).size());
-
-
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
-            }
-        });
-    }
 
     private void saveGrade(final Response r, final boolean passed){
         myRef = database.getReference("SH").child(cSHid);

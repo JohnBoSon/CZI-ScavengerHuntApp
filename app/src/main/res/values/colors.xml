@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#00b0ff</color>
-    <color name="colorPrimaryDark">#00b0ff</color>
-    <color name="colorAccent">#00B0FF</color>
+    <color name="colorPrimary">#1394EC</color>
+    <color name="colorPrimaryDark">#00B0FF</color>
+    <color name="colorAccent">#41D1693D</color>
+    <color name="czi_red">#D93A40</color>
+    <color name="czi_yellow">#E9B95A</color>
+    <color name="czi_blue">#88C4C4</color>
+    <color name="robin_black">#4F4F51</color>
+    <color name="roblin_black1">#252526</color>
 </resources>

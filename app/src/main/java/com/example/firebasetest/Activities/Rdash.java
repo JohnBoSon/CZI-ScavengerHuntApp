@@ -54,7 +54,6 @@ public class Rdash extends AppCompatActivity
 
     ListView lv;
     FirebaseListAdapter adapter;
-    private ProgressBar bar;
 
 
 
@@ -73,7 +72,6 @@ public class Rdash extends AppCompatActivity
         pIndex = getIntent().getExtras().getString("CurrentPIndex");
 
         lv = (ListView) findViewById(R.id.listView);
-        bar = findViewById(R.id.progress_bar);
 
         setUpListView();
 
@@ -129,9 +127,7 @@ public class Rdash extends AppCompatActivity
                     Animation animation = null;
                     animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_left);
                     v.startAnimation(animation);
-                    bar.setVisibility(View.GONE);
                 }else{
-                    bar.setVisibility(View.GONE);
                 }
             }
 

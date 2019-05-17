@@ -29,7 +29,7 @@ public class ManageSHActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_manage_sh);
+        //setContentView(R.layout.activity_manage_sh);
 
         //connection to authentication
         mAuth = FirebaseAuth.getInstance();
@@ -40,7 +40,7 @@ public class ManageSHActivity extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("SH");
 
-        sh_title = findViewById(R.id.title_sh);
+        //sh_title = findViewById(R.id.title_sh);
 /*
 
         //id is create when added to database

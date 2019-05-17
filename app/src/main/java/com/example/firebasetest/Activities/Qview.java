@@ -140,7 +140,6 @@ public class Qview extends AppCompatActivity
                     if (!replyChosen.isEmpty()&&isNewQ.equals("TRUE")) {
                         database.getReference("SH").child(cSHid).child("questions").child(qIndex).child("replyType").setValue(replyChosen);
                     }
-                    showMessage("save successful");
 
                 }
 
@@ -183,6 +182,8 @@ public class Qview extends AppCompatActivity
                         textTB.setChecked(false);
                         photoTB.setChecked(true);
                         textTB.setEnabled(false);
+                        photoTB.setEnabled(false);
+
                     }
 
                     if (q.getReplyType().equals("TEXT")) {
@@ -190,6 +191,8 @@ public class Qview extends AppCompatActivity
                         photoTB.setChecked(false);
                         textTB.setChecked(true);
                         photoTB.setEnabled(false);
+                        textTB.setEnabled(false);
+
 
                     }
 
@@ -218,19 +221,31 @@ public class Qview extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 SH sh = dataSnapshot.getValue(SH.class);
+                boolean submissionFound = false;
+                for(int n = 0 ; n < sh.participants.size();n++){
+                    if(sh.participants.get(n).isSubmitted()){
+                        submissionFound = true;
+                    }
 
-                String id = database.getReference("SH").child(cSHid).child("questions").child(qIndex).child("id").push().getKey();
-
-                Question newQ = new Question( desc, id, title, replyType);
-
-                sh.questions.add(newQ);
-
-                for (int i = 0 ; i< sh.participants.size(); i++){
-                    sh.participants.get(i).setNumCorrect(sh.findNumCorrectResponse(sh.participants.get(i).getId()));
-                    sh.participants.get(i).setNumResponse(sh.findNumResponse(sh.participants.get(i).getId()));
                 }
+                if(!submissionFound) {
+                    String id = database.getReference("SH").child(cSHid).child("questions").child(qIndex).child("id").push().getKey();
 
-                database.getReference("SH").child(cSHid).setValue(sh);
+                    Question newQ = new Question(desc, id, title, replyType);
+
+                    sh.questions.add(newQ);
+
+                    for (int i = 0; i < sh.participants.size(); i++) {
+                        sh.participants.get(i).setNumCorrect(sh.findNumCorrectResponse(sh.participants.get(i).getId()));
+                        sh.participants.get(i).setNumResponse(sh.findNumResponse(sh.participants.get(i).getId()));
+                    }
+
+                    database.getReference("SH").child(cSHid).setValue(sh);
+                    showMessage("save successful");
+
+                }else{
+                    showMessage("Cannot Add Question After A Student Has Made a Submission");
+                }
             }
 
             @Override

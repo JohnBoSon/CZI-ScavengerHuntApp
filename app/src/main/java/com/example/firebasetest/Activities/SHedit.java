@@ -232,7 +232,12 @@ public class SHedit extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
-                RemoveSSH(sh);
+
+
+                for(int i = 0 ; i < sh.participants.size(); i ++){
+                        RemoveSSH(sh, sh.participants.get(i).getId());
+                }
+
                 shList.remove(index);
                 database.getReference("TList").child(ownerId).setValue(shList);
                 database.getReference("SH").child(cSHid).removeValue();
@@ -250,15 +255,19 @@ public class SHedit extends AppCompatActivity
         });
     }
 
-    private void RemoveSSH(final SH sh) {
-        myRef = database.getReference("SList").child(ownerId).child("SHmap");
+    private void RemoveSSH(final SH sh,final String id) {
+        myRef = database.getReference("SList").child(id).child("SHmap");
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                final ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
-                for(int i = 0 ; i < sh.participants.size(); i ++){
-                    shList.remove(sh.participants.get(i).getsListIndex());
-                    database.getReference("SList").child(ownerId).setValue(shList);
+                if(dataSnapshot.exists()) {
+                    final ArrayList shList = (ArrayList<String>) dataSnapshot.getValue();
+                    for (int i = 0; i < shList.size(); i++) {
+                        if (sh.getId().equals(shList.get(i))) {
+                            shList.remove(i);
+                            database.getReference("SList").child(id).child("SHmap").setValue(shList);
+                        }
+                    }
                 }
             }
 

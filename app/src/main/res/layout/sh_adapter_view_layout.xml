@@ -13,39 +13,45 @@
         android:weightSum= "100">
 
         <TextView
-            android:gravity="center"
-            android:textAlignment="center"
             android:id="@+id/textView1"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:text=""
             android:layout_weight="66.6"
-            android:focusableInTouchMode="false"
             android:clickable="false"
-            android:focusable="false"/>
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:textColor="@color/robin_black"
+            android:textSize="30sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_weight="33.3"
             android:orientation="vertical"
-            android:layout_weight="33.3">
+            android:visibility="visible">
 
             <TextView
-                android:gravity="center"
                 android:id="@+id/textView2"
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
-                android:text="" />
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:textColor="@color/robin_black"
+                android:textSize="24sp" />
 
             <TextView
-                android:gravity="center"
-                android:text=""
+                android:id="@+id/textView3"
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
-                android:id="@+id/textView3"
-                android:layout_below="@+id/textView2"/>
-
-
+                android:layout_below="@+id/textView2"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:text=""
+                android:textColor="@color/robin_black"
+                android:textSize="24sp" />
 
 
         </LinearLayout>

@@ -151,6 +151,8 @@ public class Qdash extends AppCompatActivity
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
+
                 if(dataSnapshot.exists()){
                     final ArrayList qList = (ArrayList<Question>) dataSnapshot.getValue();
                     String qIndex = qList.size() + "";
